@@ -1,0 +1,38 @@
+name: Nightly regression
+
+on:
+  schedule:
+    - cron: "0 20 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npm run validate
+      - run: npm run test:regression
+        env:
+          ENV_NAME: dev
+          UI_BASE_URL: https://www.saucedemo.com
+          API_BASE_URL: https://jsonplaceholder.typicode.com
+      - name: Upload regression artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-regression-results
+          path: |
+            playwright-report
+            test-results
+            allure-results
+          if-no-files-found: ignore

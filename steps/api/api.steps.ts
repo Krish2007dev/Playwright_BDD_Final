@@ -29,6 +29,7 @@ import { Given, When, Then } from './api.fixtures';
 import { expect } from '@playwright/test';
 import { ApiClient, ApiResponseData } from '../../src/api/client/ApiClient';
 import { ENV_CONFIG } from '../../src/core/config/env.config';
+import { validateJsonSchema } from '../../src/api/helpers/JsonSchemaValidator';
 
 /**
  * Shared storage for the most recent API response.
@@ -192,5 +193,13 @@ Then(
   // eslint-disable-next-line no-empty-pattern
   async ({}, maxTime: number) => {
     expect(lastResponse.responseTime).toBeLessThan(maxTime);
+  },
+);
+
+Then(
+  'the API response should match the JSON schema {string}',
+  // eslint-disable-next-line no-empty-pattern
+  async ({}, schemaName: string) => {
+    validateJsonSchema(schemaName, lastResponse.body);
   },
 );

@@ -6,24 +6,26 @@
 
 ## ✨ Key Features
 
-| Feature | Description |
-|---|---|
-| 🧪 **BDD / Cucumber** | Write tests in plain English using Gherkin syntax |
-| 🏗️ **Page Object Model** | Clean separation of test logic and page interactions |
-| 📡 **API Testing** | Full CRUD API testing with dedicated client and validators |
-| 🌐 **Cross-Browser** | Runs on **Chromium, Firefox, and WebKit** simultaneously |
-| ⚡ **Parallel Execution** | Tests run in parallel across browsers with `fullyParallel: true` |
-| 📊 **4 Report Types** | HTML, Allure, Monocart, Custom Dashboard — all in one command |
-| 🔧 **Auto-Healing** | Self-healing locators that adapt when the UI changes |
-| ⚡ **Performance Metrics** | Page load times, FCP, LCP, resource analysis |
-| 🔄 **Auto-Retry** | Failed tests automatically retry with configurable counts |
-| 📈 **Observability** | Flaky test detection, metrics aggregation, trend analysis |
+| Feature                    | Description                                                      |
+| -------------------------- | ---------------------------------------------------------------- |
+| 🧪 **BDD / Cucumber**      | Write tests in plain English using Gherkin syntax                |
+| 🏗️ **Page Object Model**   | Clean separation of test logic and page interactions             |
+| 📡 **API Testing**         | Full CRUD API testing with dedicated client and validators       |
+| 🌐 **Cross-Browser**       | Runs on **Chromium, Firefox, and WebKit** simultaneously         |
+| ⚡ **Parallel Execution**  | Tests run in parallel across browsers with `fullyParallel: true` |
+| 📊 **4 Report Types**      | HTML, Allure, Monocart, Custom Dashboard — all in one command    |
+| 🔧 **Auto-Healing**        | Self-healing locators that adapt when the UI changes             |
+| ⚡ **Performance Metrics** | Page load times, FCP, LCP, resource analysis                     |
+| 🔄 **Auto-Retry**          | Failed tests automatically retry with configurable counts        |
+| 📈 **Observability**       | Flaky test detection, metrics aggregation, trend analysis        |
+| ♿ **BDD Accessibility** | Accessibility scans exposed as tagged Gherkin scenarios |
 
 ---
 
 ## 🛠️ Quick Setup
 
 ### Prerequisites
+
 - **Node.js** 18+ installed ([download](https://nodejs.org/))
 - **npm** (comes with Node.js)
 
@@ -39,6 +41,32 @@ npm run setup
 
 # That's it! You're ready to run tests.
 ```
+
+### Environment configuration
+
+Run the cross-platform environment setup command and adjust the generated
+values:
+The framework loads `.env.<ENV_NAME>` first, then `.env`, and finally process
+environment variables. Invalid URLs, timeouts, worker counts, and booleans fail
+fast during configuration rather than producing misleading test failures.
+
+```bash
+npm run setup:env
+npm run validate
+```
+
+For another environment:
+
+```bash
+npm run setup:env -- uat
+npx cross-env ENV_NAME=uat npm test
+```
+
+`npm run setup:env` works in Windows, Ubuntu, Linux, and macOS without relying
+on `copy`, `cp`, shell-specific environment syntax, or path separators.
+
+Do not commit `.env` or `.env.*` files. Store credentials in CI secrets or a
+local ignored environment file.
 
 ---
 
@@ -67,7 +95,35 @@ npm run test:regression
 npm run test:headed       # Watch the browser as tests run
 npm run test:debug        # Step through tests with debugger
 npm run test:interactive  # Playwright's visual UI mode
+
+# ── Quality checks ──────────────────────────────────────────────
+npm run typecheck         # TypeScript validation
+npm run format:check      # Formatting validation
+npm run validate          # All pre-test quality checks
+npm run test:a11y
 ```
+
+Accessibility checks use the framework's existing scanner and run as normal
+Playwright-BDD scenarios. Keep them tagged with `@a11y` so teams can run them
+independently in CI and track their results in the same reports.
+
+Pull requests run type-checking, API tests, and Chromium smoke tests through
+GitHub Actions. A nightly workflow executes the full tagged regression suite
+and uploads reports, traces, screenshots, and videos as build artifacts.
+
+### JSON Schema API validation
+
+API responses can be validated against reusable schemas directly from
+Playwright-BDD feature files:
+
+```gherkin
+When I send a GET request to "/users/1"
+Then the API response should match the JSON schema "user"
+```
+
+Schemas live in `src/api/schemas/` and are validated with AJV using all
+validation errors. Add a schema to the registry in
+`src/api/helpers/JsonSchemaValidator.ts` and reuse it from any API feature.
 
 ---
 
@@ -123,12 +179,12 @@ This framework runs tests across **3 browser engines simultaneously** with **par
 
 ### Configuration (in `playwright.config.ts`)
 
-| Setting | Value | What It Does |
-|---|---|---|
-| `fullyParallel` | `true` | Tests within the same file run in parallel |
-| `workers` | `4` (local), `2` (CI) | Number of parallel threads |
-| `retries` | `1` | Failed tests retry once automatically |
-| `projects` | Chromium, Firefox, WebKit, API | Each browser runs the full UI suite |
+| Setting         | Value                          | What It Does                               |
+| --------------- | ------------------------------ | ------------------------------------------ |
+| `fullyParallel` | `true`                         | Tests within the same file run in parallel |
+| `workers`       | `4` (local), `2` (CI)          | Number of parallel threads                 |
+| `retries`       | `1`                            | Failed tests retry once automatically      |
+| `projects`      | Chromium, Firefox, WebKit, API | Each browser runs the full UI suite        |
 
 ### Run Modes
 
@@ -206,6 +262,7 @@ PlaywrightBDD/
 ### Adding a UI Test
 
 **Step 1:** Create a feature file in `features/ui/`
+
 ```gherkin
 # features/ui/my_feature.feature
 @ui
@@ -217,13 +274,14 @@ Feature: My New Feature
 ```
 
 **Step 2:** Create/reuse a Page Object in `src/ui/pages/`
+
 ```typescript
 // src/ui/pages/MyPage.ts
-import { BasePage } from './BasePage';
+import { BasePage } from "./BasePage";
 
 export class MyPage extends BasePage {
   constructor(page: Page) {
-    super(page, 'MyPage');
+    super(page, "MyPage");
   }
   // Add your locators and methods...
 }
@@ -238,6 +296,7 @@ export class MyPage extends BasePage {
 ### Adding an API Test
 
 **Step 1:** Create a feature file in `features/api/`
+
 ```gherkin
 # features/api/my_api.feature
 @api
@@ -253,25 +312,25 @@ Feature: My API
 
 ## 🧰 Available NPM Scripts
 
-| Script | Description |
-|---|---|
-| `npm test` | Run all tests (UI + API, all browsers, parallel) |
-| `npm run test:report` | **Run all tests + open all 4 reports** |
-| `npm run test:ui` | Run only UI tests (3 browsers in parallel) |
-| `npm run test:api` | Run only API tests |
-| `npm run test:chrome` | Run UI tests in Chrome only |
-| `npm run test:smoke` | Run smoke tests (@smoke tag) |
-| `npm run test:regression` | Run regression tests (@regression tag) |
-| `npm run test:headed` | Run with visible browser |
-| `npm run test:debug` | Run with Playwright debugger |
-| `npm run test:interactive` | Run with Playwright UI mode |
-| `npm run report:all` | Open all 4 reports at once |
-| `npm run report` | Open Playwright HTML report |
-| `npm run report:dashboard` | Open custom dashboard report |
-| `npm run report:allure` | Open Allure report |
-| `npm run report:cucumber` | Open Cucumber HTML report |
-| `npm run clean` | Delete all test output |
-| `npm run setup` | Install everything from scratch |
+| Script                     | Description                                      |
+| -------------------------- | ------------------------------------------------ |
+| `npm test`                 | Run all tests (UI + API, all browsers, parallel) |
+| `npm run test:report`      | **Run all tests + open all 4 reports**           |
+| `npm run test:ui`          | Run only UI tests (3 browsers in parallel)       |
+| `npm run test:api`         | Run only API tests                               |
+| `npm run test:chrome`      | Run UI tests in Chrome only                      |
+| `npm run test:smoke`       | Run smoke tests (@smoke tag)                     |
+| `npm run test:regression`  | Run regression tests (@regression tag)           |
+| `npm run test:headed`      | Run with visible browser                         |
+| `npm run test:debug`       | Run with Playwright debugger                     |
+| `npm run test:interactive` | Run with Playwright UI mode                      |
+| `npm run report:all`       | Open all 4 reports at once                       |
+| `npm run report`           | Open Playwright HTML report                      |
+| `npm run report:dashboard` | Open custom dashboard report                     |
+| `npm run report:allure`    | Open Allure report                               |
+| `npm run report:cucumber`  | Open Cucumber HTML report                        |
+| `npm run clean`            | Delete all test output                           |
+| `npm run setup`            | Install everything from scratch                  |
 
 ---
 
@@ -281,4 +340,4 @@ Feature: My API
 - **`AGENT.md`** — Architecture deep-dive for AI agents and developers
 - **`SKILL.md`** — Quick reference for framework patterns and conventions
 - Every source file has **extensive inline comments** explaining what it does and why
-"# Playwright_BDD_Final" 
+  "# Playwright_BDD_Final"

@@ -13,6 +13,8 @@ allure-results/
 
 # Environment secrets
 .env
+.env.*
+!.env.example
 
 # OS files
 .DS_Store

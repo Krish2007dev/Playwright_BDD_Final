@@ -21,7 +21,13 @@
  * ============================================================================
  */
 
-import * as path from 'path';
+import * as path from "path";
+import { config as loadDotenv } from "dotenv";
+
+loadDotenv({
+  path: path.resolve(process.cwd(), `.env.${process.env.ENV_NAME || "dev"}`),
+});
+loadDotenv();
 
 /**
  * Interface defining all available environment settings.
@@ -93,8 +99,38 @@ export interface EnvironmentConfig {
  *   // If UI_BASE_URL is set in your .env → returns that value
  *   // If UI_BASE_URL is NOT set → returns 'https://www.saucedemo.com'
  */
-function getEnvVar(key: string, defaultValue: string): string {
-  return process.env[key] || defaultValue;
+function getEnvVar(key: string, defaultValue?: string): string {
+  const value = process.env[key] ?? defaultValue;
+  if (value === undefined || value.trim() === "") {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+}
+
+function getOptionalEnvVar(key: string): string {
+  return process.env[key] ?? "";
+}
+
+function getNumberEnvVar(
+  key: string,
+  defaultValue: number,
+  minimum = 0,
+): number {
+  const value = Number(getEnvVar(key, String(defaultValue)));
+  if (!Number.isFinite(value) || value < minimum) {
+    throw new Error(
+      `${key} must be a number greater than or equal to ${minimum}`,
+    );
+  }
+  return value;
+}
+
+function getBooleanEnvVar(key: string, defaultValue: boolean): boolean {
+  const value = getEnvVar(key, String(defaultValue)).toLowerCase();
+  if (value !== "true" && value !== "false") {
+    throw new Error(`${key} must be either true or false`);
+  }
+  return value === "true";
 }
 
 /**
@@ -108,39 +144,52 @@ function getEnvVar(key: string, defaultValue: string): string {
  */
 export const ENV_CONFIG: EnvironmentConfig = {
   // ─── Environment Name ──────────────────────────────────────────────
-  ENV_NAME: getEnvVar('ENV_NAME', 'development'),
+  ENV_NAME: getEnvVar("ENV_NAME", "development"),
 
   // ─── Application URLs ─────────────────────────────────────────────
-  UI_BASE_URL: getEnvVar('UI_BASE_URL', 'https://www.saucedemo.com'),
-  API_BASE_URL: getEnvVar('API_BASE_URL', 'https://jsonplaceholder.typicode.com'),
+  UI_BASE_URL: getEnvVar("UI_BASE_URL", "https://www.saucedemo.com"),
+  API_BASE_URL: getEnvVar(
+    "API_BASE_URL",
+    "https://jsonplaceholder.typicode.com",
+  ),
 
   // ─── Timeouts (in milliseconds) ───────────────────────────────────
   // 1000ms = 1 second. So 30000ms = 30 seconds.
-  DEFAULT_TIMEOUT: parseInt(getEnvVar('DEFAULT_TIMEOUT', '30000')),
-  API_TIMEOUT: parseInt(getEnvVar('API_TIMEOUT', '15000')),
-  NAVIGATION_TIMEOUT: parseInt(getEnvVar('NAVIGATION_TIMEOUT', '30000')),
+  DEFAULT_TIMEOUT: getNumberEnvVar("DEFAULT_TIMEOUT", 30000, 1),
+  API_TIMEOUT: getNumberEnvVar("API_TIMEOUT", 15000, 1),
+  NAVIGATION_TIMEOUT: getNumberEnvVar("NAVIGATION_TIMEOUT", 30000, 1),
 
   // ─── Browser Settings ─────────────────────────────────────────────
-  HEADLESS: getEnvVar('HEADLESS', 'true') === 'true',
-  VIEWPORT_WIDTH: parseInt(getEnvVar('VIEWPORT_WIDTH', '1280')),
-  VIEWPORT_HEIGHT: parseInt(getEnvVar('VIEWPORT_HEIGHT', '720')),
+  HEADLESS: getBooleanEnvVar("HEADLESS", true),
+  VIEWPORT_WIDTH: getNumberEnvVar("VIEWPORT_WIDTH", 1280, 320),
+  VIEWPORT_HEIGHT: getNumberEnvVar("VIEWPORT_HEIGHT", 720, 240),
 
   // ─── Test Execution ───────────────────────────────────────────────
-  RETRY_COUNT: parseInt(getEnvVar('RETRY_COUNT', '1')),
-  WORKERS: parseInt(getEnvVar('WORKERS', '4')),
+  RETRY_COUNT: getNumberEnvVar("RETRY_COUNT", 1),
+  WORKERS: getNumberEnvVar("WORKERS", 4, 1),
 
   // ─── Output Directories ───────────────────────────────────────────
-  REPORT_DIR: getEnvVar('REPORT_DIR', 'test-results/reports'),
-  SCREENSHOT_DIR: getEnvVar('SCREENSHOT_DIR', 'test-results/screenshots'),
-  VIDEO_DIR: getEnvVar('VIDEO_DIR', 'test-results/videos'),
-  TRACE_DIR: getEnvVar('TRACE_DIR', 'test-results/traces'),
+  REPORT_DIR: getEnvVar("REPORT_DIR", "test-results/reports"),
+  SCREENSHOT_DIR: getEnvVar("SCREENSHOT_DIR", "test-results/screenshots"),
+  VIDEO_DIR: getEnvVar("VIDEO_DIR", "test-results/videos"),
+  TRACE_DIR: getEnvVar("TRACE_DIR", "test-results/traces"),
 
-  // ─── Test Credentials ─────────────────────────────────────────────
-  // NOTE: In real projects, NEVER commit real credentials.
-  // Use environment variables or a secrets manager instead.
-  DEFAULT_USERNAME: getEnvVar('DEFAULT_USERNAME', 'standard_user'),
-  DEFAULT_PASSWORD: getEnvVar('DEFAULT_PASSWORD', 'secret_sauce'),
+  // Credentials are intentionally empty by default. Supply them through secrets
+  // or an environment file that is excluded from source control.
+  DEFAULT_USERNAME: getOptionalEnvVar("DEFAULT_USERNAME"),
+  DEFAULT_PASSWORD: getOptionalEnvVar("DEFAULT_PASSWORD"),
 };
+
+for (const [key, value] of Object.entries({
+  UI_BASE_URL: ENV_CONFIG.UI_BASE_URL,
+  API_BASE_URL: ENV_CONFIG.API_BASE_URL,
+})) {
+  try {
+    new URL(value);
+  } catch {
+    throw new Error(`${key} must be a valid absolute URL`);
+  }
+}
 
 /**
  * Helper to resolve paths relative to the project root.

@@ -32,12 +32,14 @@ Feature: REST API CRUD Operations
   Scenario: Get list of users
     When I send a GET request to "/users"
     Then the API response status should be 200
+    And the API response should match the JSON schema "userList"
 
   @regression
   Scenario: Get a single user
     When I send a GET request to "/users/1"
     Then the API response status should be 200
     And the API response field "id" should equal 1
+    And the API response should match the JSON schema "user"
 
   @regression
   Scenario: Get posts for a user
