@@ -61,6 +61,22 @@ export interface EnvironmentConfig {
 
   /** Default password for login tests (SauceDemo) */
   DEFAULT_PASSWORD: string;
+
+  /** MySQL connection settings used by API database fixtures */
+  MYSQL: {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+    connectionLimit: number;
+  };
+
+  /** MongoDB connection settings used by API database fixtures */
+  MONGO: {
+    uri: string;
+    database: string;
+  };
 }
 
 /**
@@ -146,6 +162,20 @@ export const ENV_CONFIG: EnvironmentConfig = {
 
   DEFAULT_USERNAME: getOptionalEnvVar("DEFAULT_USERNAME"),
   DEFAULT_PASSWORD: getOptionalEnvVar("DEFAULT_PASSWORD"),
+
+  MYSQL: {
+    host: getEnvVar("MYSQL_HOST", "localhost"),
+    port: getNumberEnvVar("MYSQL_PORT", 3306, 1),
+    user: getEnvVar("MYSQL_USER", "root"),
+    password: getOptionalEnvVar("MYSQL_PASSWORD"),
+    database: getEnvVar("MYSQL_DATABASE", "test"),
+    connectionLimit: getNumberEnvVar("MYSQL_CONNECTION_LIMIT", 10, 1),
+  },
+
+  MONGO: {
+    uri: getEnvVar("MONGO_URI", "mongodb://localhost:27017"),
+    database: getEnvVar("MONGO_DATABASE", "test"),
+  },
 };
 
 for (const [key, value] of Object.entries({

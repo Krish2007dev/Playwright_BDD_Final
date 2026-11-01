@@ -37,6 +37,7 @@ export interface MetricsSummary {
 
   avgPageLoadTime: number | null;
   avgApiResponseTime: number | null;
+  databaseMetrics: DatabaseMetrics;
   performanceData: PerformanceMetrics[];
   accessibilityData: AccessibilityResult[];
 
@@ -53,6 +54,22 @@ export interface MetricsSummary {
   failedTests: Array<{ name: string; feature: string; error: string }>;
 }
 
+export interface DatabaseMetrics {
+  totalOperations: number;
+  successfulOperations: number;
+  failedOperations: number;
+  averageDuration: number | null;
+  byDatabase: Record<
+    string,
+    {
+      operations: number;
+      successful: number;
+      failed: number;
+      averageDuration: number;
+    }
+  >;
+}
+
 export class MetricsCollector {
   private static instance: MetricsCollector;
 
@@ -63,6 +80,12 @@ export class MetricsCollector {
   private accessibilityData: AccessibilityResult[] = [];
 
   private apiResponseTimes: number[] = [];
+
+  private databaseOperations: Array<{
+    database: "mysql" | "mongodb";
+    duration: number;
+    success: boolean;
+  }> = [];
 
   private runStartTime: Date;
 
@@ -98,6 +121,14 @@ export class MetricsCollector {
   /** Records an API response time (in ms). */
   addApiResponseTime(duration: number): void {
     this.apiResponseTimes.push(duration);
+  }
+
+  addDatabaseOperation(
+    database: "mysql" | "mongodb",
+    duration: number,
+    success: boolean,
+  ): void {
+    this.databaseOperations.push({ database, duration, success });
   }
 
   /**
@@ -150,6 +181,29 @@ export class MetricsCollector {
               this.apiResponseTimes.length,
           )
         : null;
+
+    const databaseDurations = this.databaseOperations.map(
+      (operation) => operation.duration,
+    );
+    const byDatabase: DatabaseMetrics["byDatabase"] = {};
+    for (const operation of this.databaseOperations) {
+      const current = byDatabase[operation.database] ?? {
+        operations: 0,
+        successful: 0,
+        failed: 0,
+        averageDuration: 0,
+      };
+      current.operations++;
+      current.successful += operation.success ? 1 : 0;
+      current.failed += operation.success ? 0 : 1;
+      current.averageDuration += operation.duration;
+      byDatabase[operation.database] = current;
+    }
+    for (const metrics of Object.values(byDatabase)) {
+      metrics.averageDuration = Math.round(
+        metrics.averageDuration / metrics.operations,
+      );
+    }
 
     // ── Group results by feature ─────────────────────────────────────
     const byFeature: Record<
@@ -214,6 +268,23 @@ export class MetricsCollector {
       totalAutoHeals,
       avgPageLoadTime: avgPageLoad,
       avgApiResponseTime: avgApiResponse,
+      databaseMetrics: {
+        totalOperations: this.databaseOperations.length,
+        successfulOperations: this.databaseOperations.filter(
+          (operation) => operation.success,
+        ).length,
+        failedOperations: this.databaseOperations.filter(
+          (operation) => !operation.success,
+        ).length,
+        averageDuration:
+          databaseDurations.length > 0
+            ? Math.round(
+                databaseDurations.reduce((sum, duration) => sum + duration, 0) /
+                  databaseDurations.length,
+              )
+            : null,
+        byDatabase,
+      },
       performanceData: this.performanceData,
       accessibilityData: this.accessibilityData,
       byFeature,
@@ -255,6 +326,7 @@ export class MetricsCollector {
     this.performanceData = [];
     this.accessibilityData = [];
     this.apiResponseTimes = [];
+    this.databaseOperations = [];
     this.runStartTime = new Date();
     log.info("MetricsCollector reset");
   }

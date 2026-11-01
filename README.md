@@ -125,6 +125,40 @@ Schemas live in `src/api/schemas/` and are validated with AJV using all
 validation errors. Add a schema to the registry in
 `src/api/helpers/JsonSchemaValidator.ts` and reuse it from any API feature.
 
+### Database utilities
+
+API tests can use worker-scoped MySQL and MongoDB fixtures. Configure the
+connections in `.env.<ENV_NAME>` or `.env`:
+
+```env
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=root
+MYSQL_PASSWORD=
+MYSQL_DATABASE=test
+MYSQL_CONNECTION_LIMIT=10
+MONGO_URI=mongodb://localhost:27017
+MONGO_DATABASE=test
+```
+
+Use the fixtures from API step definitions or custom API tests:
+
+```typescript
+const users = await mysql.query("SELECT * FROM users WHERE id = ?", [userId]);
+const user = await mongo.findOne("users", { externalId: userId });
+```
+
+The `mysql` fixture provides `query`, `execute`, and `transaction`; the
+`mongo` fixture provides `collection`, `find`, `findOne`, `insert`, and
+`update`. Connections are opened once per Playwright worker and closed after
+the worker finishes. Database fixtures are opt-in: tests that do not request
+them do not attempt a database connection.
+
+Database operations record duration and success/failure counts in
+`test-results/reports/metrics.json`. Failures are logged with the database
+operation and driver error message; SQL text and parameter values are
+intentionally not logged.
+
 ---
 
 ## 📊 Viewing Reports

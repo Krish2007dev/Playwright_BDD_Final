@@ -5,6 +5,13 @@ import { captureFailureLogs } from "../../src/core/utils/test-artifacts";
 import { APILogger } from "../../src/api/utils/logger";
 import { setCustomExpectLogger } from "../../src/api/utils/custom-exptect";
 import { RequestHandler } from "../../src/api/utils/request-handler";
+import { MySqlDatabase } from "../../src/api/database/MySqlDatabase";
+import { MongoDatabase } from "../../src/api/database/MongoDatabase";
+
+type APIWorkerFixtures = {
+  mysql: MySqlDatabase;
+  mongo: MongoDatabase;
+};
 
 type APIFixtures = {
   apiClient: ApiClient;
@@ -14,7 +21,7 @@ type APIFixtures = {
   failureArtifacts: void;
 };
 
-export const test = base.extend<APIFixtures>({
+export const test = base.extend<APIFixtures, APIWorkerFixtures>({
   failureArtifacts: [
     async ({}, use, testInfo) => {
       await captureFailureLogs(testInfo, use);
@@ -39,6 +46,32 @@ export const test = base.extend<APIFixtures>({
   requestHandler: async ({ request, apiLogger }, use) => {
     await use(new RequestHandler(request, ENV_CONFIG.API_BASE_URL, apiLogger));
   },
+
+  mysql: [
+    async ({}, use) => {
+      const database = new MySqlDatabase();
+      await database.connect();
+      try {
+        await use(database);
+      } finally {
+        await database.close();
+      }
+    },
+    { scope: "worker" },
+  ],
+
+  mongo: [
+    async ({}, use) => {
+      const database = new MongoDatabase();
+      await database.connect();
+      try {
+        await use(database);
+      } finally {
+        await database.close();
+      }
+    },
+    { scope: "worker" },
+  ],
 
   // eslint-disable-next-line no-empty-pattern
   apiResponse: async ({}, use) => {

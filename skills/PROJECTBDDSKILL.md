@@ -1,6 +1,6 @@
 ---
 name: playwright-bdd
-description: 'Enforces Behavior Driven Development. Use when: implementing new features, making significant code changes, adding functionality, refactoring behavior. Requires writing a Gherkin feature file first, getting user approval, then implementing.'
+description: "Enforces Behavior Driven Development. Use when: implementing new features, making significant code changes, adding functionality, refactoring behavior. Requires writing a Gherkin feature file first, getting user approval, then implementing."
 ---
 
 # Playwright BDD
@@ -139,17 +139,20 @@ Feature: Shopping cart
 ## Example Step Definitions
 
 ```typescript
-import { Given, When, Then } from './fixtures';
+import { Given, When, Then } from "./fixtures";
 
-Given('I am on a product page', async ({ page }) => {
-  await page.goto('/product');
+Given("I am on a product page", async ({ page }) => {
+  await page.goto("/product");
 });
 
-When('I add the product {string} to the cart', async ({ page }, name: string) => {
-  await page.getByRole('button', { name: `Add ${name}` }).click();
-});
+When(
+  "I add the product {string} to the cart",
+  async ({ page }, name: string) => {
+    await page.getByRole("button", { name: `Add ${name}` }).click();
+  },
+);
 
-Then('the cart badge should show {int}', async ({ page }, count: number) => {
-  await expect(page.locator('.cart-badge')).toHaveText(String(count));
+Then("the cart badge should show {int}", async ({ page }, count: number) => {
+  await expect(page.locator(".cart-badge")).toHaveText(String(count));
 });
 ```

@@ -56,29 +56,29 @@ src/
 
 ```typescript
 // src/ui/pages/MyAppPage.ts
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 export class MyAppPage extends BasePage {
   readonly usernameInput: Locator;
   readonly submitButton: Locator;
 
   constructor(page: Page) {
-    super(page, 'MyAppPage');
-    this.usernameInput = page.getByLabel('Username');
-    this.submitButton  = page.getByRole('button', { name: 'Submit' });
+    super(page, "MyAppPage");
+    this.usernameInput = page.getByLabel("Username");
+    this.submitButton = page.getByRole("button", { name: "Submit" });
   }
 
   async navigate(): Promise<void> {
-    await this.navigateTo('https://myapp.example.com');
+    await this.navigateTo("https://myapp.example.com");
   }
 
   async fillUsername(name: string): Promise<void> {
-    await this.fill(this.usernameInput, name, 'Username');
+    await this.fill(this.usernameInput, name, "Username");
   }
 
   async submit(): Promise<void> {
-    await this.click(this.submitButton, 'Submit button');
+    await this.click(this.submitButton, "Submit button");
   }
 }
 ```
@@ -87,7 +87,7 @@ export class MyAppPage extends BasePage {
 
 ```typescript
 // In steps/ui/ui.fixtures.ts — add to TestFixtures and the test.extend block
-import { MyAppPage } from '../../src/ui/pages/MyAppPage';
+import { MyAppPage } from "../../src/ui/pages/MyAppPage";
 
 type TestFixtures = {
   myAppPage: MyAppPage;
@@ -95,7 +95,9 @@ type TestFixtures = {
 };
 
 const test = base.extend<TestFixtures>({
-  myAppPage: async ({ page }, use) => { await use(new MyAppPage(page)); },
+  myAppPage: async ({ page }, use) => {
+    await use(new MyAppPage(page));
+  },
 });
 ```
 
@@ -116,18 +118,18 @@ Feature: My Application
 
 ```typescript
 // steps/ui/my_app.steps.ts
-import { Given, When, Then } from './ui.fixtures';
-import { expect } from '@playwright/test';
+import { Given, When, Then } from "./ui.fixtures";
+import { expect } from "@playwright/test";
 
-Given('I am on the My App homepage', async ({ myAppPage }) => {
+Given("I am on the My App homepage", async ({ myAppPage }) => {
   await myAppPage.navigate();
 });
 
-When('I enter username {string}', async ({ myAppPage }, name: string) => {
+When("I enter username {string}", async ({ myAppPage }, name: string) => {
   await myAppPage.fillUsername(name);
 });
 
-When('I click the submit button', async ({ myAppPage }) => {
+When("I click the submit button", async ({ myAppPage }) => {
   await myAppPage.submit();
 });
 ```
@@ -168,15 +170,15 @@ Feature: My API
 
 All settings are in `.env` (loaded automatically by Playwright):
 
-| Variable        | Default                                      | Purpose              |
-|-----------------|----------------------------------------------|----------------------|
-| `UI_BASE_URL`   | `https://www.saucedemo.com`                  | UI test base URL     |
-| `API_BASE_URL`  | `https://jsonplaceholder.typicode.com`       | API test base URL    |
-| `HEADLESS`      | `true`                                       | Run headless?        |
-| `DEFAULT_TIMEOUT` | `30000`                                    | Action timeout (ms)  |
-| `TEST_TIMEOUT`  | `60000`                                      | Test timeout (ms)    |
-| `RETRY_COUNT`   | `1`                                          | Retry failed tests   |
-| `WORKERS`       | `4`                                          | Parallel workers     |
+| Variable          | Default                                | Purpose             |
+| ----------------- | -------------------------------------- | ------------------- |
+| `UI_BASE_URL`     | `https://www.saucedemo.com`            | UI test base URL    |
+| `API_BASE_URL`    | `https://jsonplaceholder.typicode.com` | API test base URL   |
+| `HEADLESS`        | `true`                                 | Run headless?       |
+| `DEFAULT_TIMEOUT` | `30000`                                | Action timeout (ms) |
+| `TEST_TIMEOUT`    | `60000`                                | Test timeout (ms)   |
+| `RETRY_COUNT`     | `1`                                    | Retry failed tests  |
+| `WORKERS`         | `4`                                    | Parallel workers    |
 
 Override for CI: set environment variables directly (they take precedence over `.env`).
 
@@ -184,25 +186,25 @@ Override for CI: set environment variables directly (they take precedence over `
 
 ## Naming Conventions
 
-| Item          | Convention              | Example                     |
-|---------------|-------------------------|-----------------------------|
-| Feature file  | `snake_case.feature`    | `user_login.feature`        |
-| Step file     | `snake_case.steps.ts`   | `user_login.steps.ts`       |
-| Page object   | `PascalCase.ts`         | `UserLoginPage.ts`          |
-| Fixture file  | `scope.fixtures.ts`     | `ui.fixtures.ts`            |
+| Item         | Convention            | Example               |
+| ------------ | --------------------- | --------------------- |
+| Feature file | `snake_case.feature`  | `user_login.feature`  |
+| Step file    | `snake_case.steps.ts` | `user_login.steps.ts` |
+| Page object  | `PascalCase.ts`       | `UserLoginPage.ts`    |
+| Fixture file | `scope.fixtures.ts`   | `ui.fixtures.ts`      |
 
 ---
 
 ## Tag Strategy
 
-| Tag            | Purpose                           |
-|----------------|-----------------------------------|
-| `@ui`          | Runs in browser                   |
-| `@api`         | No browser, HTTP requests only    |
-| `@smoke`       | Critical path, run frequently     |
-| `@regression`  | Full coverage, run on CI          |
-| `@mock`        | Uses network interception         |
-| `@wip`         | Work in progress, skip in CI      |
+| Tag           | Purpose                        |
+| ------------- | ------------------------------ |
+| `@ui`         | Runs in browser                |
+| `@api`        | No browser, HTTP requests only |
+| `@smoke`      | Critical path, run frequently  |
+| `@regression` | Full coverage, run on CI       |
+| `@mock`       | Uses network interception      |
+| `@wip`        | Work in progress, skip in CI   |
 
 **Run by tag:** `npx playwright test --grep "@smoke"`
 
@@ -304,27 +306,27 @@ e2e-tests:
 
 ## Troubleshooting FAQ
 
-| Problem                        | Solution                                      |
-|--------------------------------|-----------------------------------------------|
-| `bddgen` errors               | Check feature/step file paths in config       |
-| Tests timeout                  | Increase `DEFAULT_TIMEOUT` in `.env`          |
-| Element not found              | Auto-heal logs show alternatives tried        |
-| API 403/blocked                | Check if API requires auth or is Cloudflare'd |
-| WebKit route intercept fails   | Known limitation — skip with `$testInfo.skip` |
-| `Cannot find module` errors    | Check `tsconfig.json` path aliases            |
-| Flaky tests                    | Add `await` before assertions, use `waitFor`  |
-| Wrong base URL                 | Check `.env` and `playwright.config.ts`       |
+| Problem                      | Solution                                      |
+| ---------------------------- | --------------------------------------------- |
+| `bddgen` errors              | Check feature/step file paths in config       |
+| Tests timeout                | Increase `DEFAULT_TIMEOUT` in `.env`          |
+| Element not found            | Auto-heal logs show alternatives tried        |
+| API 403/blocked              | Check if API requires auth or is Cloudflare'd |
+| WebKit route intercept fails | Known limitation — skip with `$testInfo.skip` |
+| `Cannot find module` errors  | Check `tsconfig.json` path aliases            |
+| Flaky tests                  | Add `await` before assertions, use `waitFor`  |
+| Wrong base URL               | Check `.env` and `playwright.config.ts`       |
 
 ---
 
 ## Available NPM Scripts
 
-| Command             | Action                                |
-|----------------------|---------------------------------------|
-| `npm test`           | Full suite (all projects/browsers)    |
-| `npm run test:ui`    | UI tests only (all browsers)          |
-| `npm run test:api`   | API tests only                        |
-| `npm run test:chrome`| UI on Chromium only                   |
-| `npm run test:smoke` | Smoke tests only (`@smoke` tag)       |
-| `npm run report`     | Open HTML report                      |
-| `npm run setup`      | Install deps + browsers               |
+| Command               | Action                             |
+| --------------------- | ---------------------------------- |
+| `npm test`            | Full suite (all projects/browsers) |
+| `npm run test:ui`     | UI tests only (all browsers)       |
+| `npm run test:api`    | API tests only                     |
+| `npm run test:chrome` | UI on Chromium only                |
+| `npm run test:smoke`  | Smoke tests only (`@smoke` tag)    |
+| `npm run report`      | Open HTML report                   |
+| `npm run setup`       | Install deps + browsers            |

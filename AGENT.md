@@ -32,13 +32,13 @@
 
 ### Key Design Patterns
 
-| Pattern                | Where Used                     | Purpose                                    |
-|------------------------|--------------------------------|--------------------------------------------|
-| **Page Object Model**  | `src/ui/pages/`                | Encapsulate UI interactions per page        |
-| **Fixtures**           | `steps/*/fixtures.ts`          | Dependency injection for test setup         |
-| `defineBddProject()`  | `playwright.config.ts`         | Create separate test projects for BDD       |
-| **Auto-Healing**       | `src/core/utils/auto-heal.ts`  | Fallback locator strategies                 |
-| **Centralized Config** | `src/core/config/`             | Single source for environment + test data   |
+| Pattern                | Where Used                    | Purpose                                   |
+| ---------------------- | ----------------------------- | ----------------------------------------- |
+| **Page Object Model**  | `src/ui/pages/`               | Encapsulate UI interactions per page      |
+| **Fixtures**           | `steps/*/fixtures.ts`         | Dependency injection for test setup       |
+| `defineBddProject()`   | `playwright.config.ts`        | Create separate test projects for BDD     |
+| **Auto-Healing**       | `src/core/utils/auto-heal.ts` | Fallback locator strategies               |
+| **Centralized Config** | `src/core/config/`            | Single source for environment + test data |
 
 ---
 
@@ -61,7 +61,7 @@ Each screen/page of your app gets its own page object extending `BasePage`:
 // src/ui/pages/YourPage.ts
 export class YourPage extends BasePage {
   constructor(page: Page) {
-    super(page, 'YourPage');
+    super(page, "YourPage");
     // Define locators here using getByRole, getByLabel, etc.
   }
   // Add action methods: navigate(), fillForm(), submit(), etc.
@@ -124,12 +124,15 @@ Use Playwright fixtures with auto-use:
 // In ui.fixtures.ts
 const test = base.extend<TestFixtures>({
   // This runs before EVERY test automatically
-  autoSetup: [async ({ page }, use) => {
-    // Before test: clear cookies, set viewport, etc.
-    await page.context().clearCookies();
-    await use(undefined);
-    // After test: capture screenshot on failure, etc.
-  }, { auto: true }],
+  autoSetup: [
+    async ({ page }, use) => {
+      // Before test: clear cookies, set viewport, etc.
+      await page.context().clearCookies();
+      await use(undefined);
+      // After test: capture screenshot on failure, etc.
+    },
+    { auto: true },
+  ],
 });
 ```
 
@@ -152,7 +155,7 @@ export function generateUser() {
   return {
     name: `user_${Date.now()}`,
     email: `test_${Date.now()}@example.com`,
-    password: 'SecureP@ss123',
+    password: "SecureP@ss123",
   };
 }
 ```
@@ -163,41 +166,41 @@ export function generateUser() {
 
 ### Configuration Files
 
-| File                       | Purpose                                                    |
-|----------------------------|------------------------------------------------------------|
-| `playwright.config.ts`     | Main config: projects, reporters, timeouts, retries        |
-| `tsconfig.json`            | TypeScript config with path aliases (`@core/*`, `@ui/*`)   |
-| `.env`                     | Environment variables (URLs, timeouts, credentials)        |
-| `src/core/config/env.config.ts` | Reads `.env` → typed config object with defaults     |
-| `src/core/config/test-data.config.ts` | Centralized test data constants             |
+| File                                  | Purpose                                                  |
+| ------------------------------------- | -------------------------------------------------------- |
+| `playwright.config.ts`                | Main config: projects, reporters, timeouts, retries      |
+| `tsconfig.json`                       | TypeScript config with path aliases (`@core/*`, `@ui/*`) |
+| `.env`                                | Environment variables (URLs, timeouts, credentials)      |
+| `src/core/config/env.config.ts`       | Reads `.env` → typed config object with defaults         |
+| `src/core/config/test-data.config.ts` | Centralized test data constants                          |
 
 ### UI Testing Files
 
-| File                         | Purpose                                              |
-|------------------------------|------------------------------------------------------|
-| `src/ui/pages/BasePage.ts`   | Base class: navigation, click, fill, assertions      |
-| `src/ui/pages/*.ts`          | App-specific page objects                            |
-| `steps/ui/ui.fixtures.ts`    | Fixture definitions + `createBdd(test)` export       |
-| `steps/ui/*.steps.ts`        | Step definitions linking Gherkin to page objects      |
+| File                       | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
+| `src/ui/pages/BasePage.ts` | Base class: navigation, click, fill, assertions  |
+| `src/ui/pages/*.ts`        | App-specific page objects                        |
+| `steps/ui/ui.fixtures.ts`  | Fixture definitions + `createBdd(test)` export   |
+| `steps/ui/*.steps.ts`      | Step definitions linking Gherkin to page objects |
 
 ### API Testing Files
 
-| File                          | Purpose                                             |
-|-------------------------------|-----------------------------------------------------|
-| `src/api/client/ApiClient.ts` | HTTP client with logging, retries, timing           |
-| `src/api/helpers/ApiValidator.ts` | Response validation helper functions            |
-| `steps/api/api.fixtures.ts`   | ApiClient fixture + response sharing                |
-| `steps/api/api.steps.ts`      | Generic CRUD step definitions (works with any API)  |
+| File                              | Purpose                                            |
+| --------------------------------- | -------------------------------------------------- |
+| `src/api/client/ApiClient.ts`     | HTTP client with logging, retries, timing          |
+| `src/api/helpers/ApiValidator.ts` | Response validation helper functions               |
+| `steps/api/api.fixtures.ts`       | ApiClient fixture + response sharing               |
+| `steps/api/api.steps.ts`          | Generic CRUD step definitions (works with any API) |
 
 ### Utilities
 
-| File                                  | Purpose                                    |
-|---------------------------------------|--------------------------------------------|
-| `src/core/utils/logger.ts`           | Colored, structured logging                |
-| `src/core/utils/auto-heal.ts`        | Auto-healing locator fallback strategies   |
-| `src/core/utils/metrics-collector.ts` | Aggregates performance/accessibility data  |
-| `src/core/utils/performance-helper.ts`| Collects page load and web vitals metrics  |
-| `src/reporting/custom-reporter.ts`    | HTML dashboard with charts and tables      |
+| File                                   | Purpose                                   |
+| -------------------------------------- | ----------------------------------------- |
+| `src/core/utils/logger.ts`             | Colored, structured logging               |
+| `src/core/utils/auto-heal.ts`          | Auto-healing locator fallback strategies  |
+| `src/core/utils/metrics-collector.ts`  | Aggregates performance/accessibility data |
+| `src/core/utils/performance-helper.ts` | Collects page load and web vitals metrics |
+| `src/reporting/custom-reporter.ts`     | HTML dashboard with charts and tables     |
 
 ---
 
@@ -230,13 +233,13 @@ Test Failing?
 
 ## Common Operations Quickref
 
-| Task                              | Command / Action                               |
-|-----------------------------------|-------------------------------------------------|
-| Add a new UI page object          | Create class extending `BasePage` in `src/ui/pages/` |
-| Add a new API endpoint            | Just write a feature file — generic steps handle it  |
-| Run by tag                        | `npx playwright test --grep "@smoke"`                |
-| Run single file                   | `npx playwright test path/to/spec.js`                |
-| Debug a test                      | `PWDEBUG=1 npx playwright test --project=chromium`   |
-| View trace                        | `npx playwright show-trace <path-to-trace.zip>`      |
-| Generate BDD stubs                | `npx bddgen`                                         |
-| Switch environment                | Update `.env` or set env vars inline                  |
+| Task                     | Command / Action                                     |
+| ------------------------ | ---------------------------------------------------- |
+| Add a new UI page object | Create class extending `BasePage` in `src/ui/pages/` |
+| Add a new API endpoint   | Just write a feature file — generic steps handle it  |
+| Run by tag               | `npx playwright test --grep "@smoke"`                |
+| Run single file          | `npx playwright test path/to/spec.js`                |
+| Debug a test             | `PWDEBUG=1 npx playwright test --project=chromium`   |
+| View trace               | `npx playwright show-trace <path-to-trace.zip>`      |
+| Generate BDD stubs       | `npx bddgen`                                         |
+| Switch environment       | Update `.env` or set env vars inline                 |

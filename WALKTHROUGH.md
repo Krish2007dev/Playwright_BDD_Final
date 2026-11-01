@@ -29,11 +29,11 @@
 
 This is a **test automation framework** — software that automatically tests other software. It combines three technologies:
 
-| Technology | What It Does | Analogy |
-|---|---|---|
-| **Playwright** | Controls web browsers programmatically | A robot that clicks buttons and reads pages |
-| **Cucumber/BDD** | Lets you write tests in plain English | Writing a recipe instead of chemistry formulas |
-| **TypeScript** | The programming language used | The language the robot understands |
+| Technology       | What It Does                           | Analogy                                        |
+| ---------------- | -------------------------------------- | ---------------------------------------------- |
+| **Playwright**   | Controls web browsers programmatically | A robot that clicks buttons and reads pages    |
+| **Cucumber/BDD** | Lets you write tests in plain English  | Writing a recipe instead of chemistry formulas |
+| **TypeScript**   | The programming language used          | The language the robot understands             |
 
 ### Why BDD (Behavior-Driven Development)?
 
@@ -41,8 +41,8 @@ Instead of writing technical test code like:
 
 ```typescript
 // Hard to read — only developers understand this
-await page.locator('#login-btn').click();
-assert(page.url()).contains('/dashboard');
+await page.locator("#login-btn").click();
+assert(page.url()).contains("/dashboard");
 ```
 
 With BDD, tests read like plain English:
@@ -94,11 +94,11 @@ Here's how a test goes from English words to browser actions:
 
 **Three layers, each with a clear job:**
 
-| Layer | File Location | Responsibility |
-|---|---|---|
-| **Feature files** | `features/` | WHAT to test (plain English) |
-| **Step definitions** | `steps/` | HOW to connect English to code |
-| **Page objects** | `src/ui/pages/` | WHERE to find and interact with elements |
+| Layer                | File Location   | Responsibility                           |
+| -------------------- | --------------- | ---------------------------------------- |
+| **Feature files**    | `features/`     | WHAT to test (plain English)             |
+| **Step definitions** | `steps/`        | HOW to connect English to code           |
+| **Page objects**     | `src/ui/pages/` | WHERE to find and interact with elements |
 
 ---
 
@@ -116,6 +116,7 @@ npm test
 ```
 
 **Prerequisites:**
+
 - Node.js v18+ installed
 - A terminal (Terminal.app, iTerm, VS Code terminal)
 
@@ -187,15 +188,15 @@ PlaywrightBDD/
 {
   "name": "playwright-bdd-framework",
   "scripts": {
-    "test": "...",           // Runs all tests
-    "test:report": "...",    // Runs tests + opens all 4 reports
-    "test:ui": "...",        // Runs only UI tests
-    "test:api": "...",       // Runs only API tests
-    "test:smoke": "...",     // Runs only @smoke tagged tests
-    "test:headed": "...",    // Runs tests with visible browser
-    "report:all": "...",     // Opens all 4 reports
-    "clean": "...",          // Deletes all test outputs
-    "setup": "..."           // Installs everything from scratch
+    "test": "...", // Runs all tests
+    "test:report": "...", // Runs tests + opens all 4 reports
+    "test:ui": "...", // Runs only UI tests
+    "test:api": "...", // Runs only API tests
+    "test:smoke": "...", // Runs only @smoke tagged tests
+    "test:headed": "...", // Runs tests with visible browser
+    "report:all": "...", // Opens all 4 reports
+    "clean": "...", // Deletes all test outputs
+    "setup": "..." // Installs everything from scratch
   }
 }
 ```
@@ -207,6 +208,7 @@ PlaywrightBDD/
 ### 📄 `playwright.config.ts` — The Master Control Panel
 
 **Why it exists:** This is the single most important configuration file. Playwright reads it to know:
+
 - Which browsers to test in
 - Where to find test files
 - What reporters to use
@@ -332,17 +334,17 @@ Feature: Login Functionality
 
 **Gherkin keywords explained:**
 
-| Keyword | Meaning | Example |
-|---|---|---|
-| `Feature:` | A group of related scenarios | "Login Functionality" |
-| `Scenario:` | One specific test case | "Successful login" |
-| `Scenario Outline:` | A template test run multiple times with different data | Data-driven login tests |
-| `Examples:` | The data table for a Scenario Outline | Different username/password combinations |
-| `Given` | The starting state (precondition) | "I am on the login page" |
-| `When` | The action being performed | "I login with ..." |
-| `Then` | The expected outcome (assertion) | "I should see the inventory page" |
-| `And` | Continues the previous keyword | "And I should see welcome message" |
-| `@tag` | Labels for organizing/filtering tests | `@smoke`, `@regression`, `@ui` |
+| Keyword             | Meaning                                                | Example                                  |
+| ------------------- | ------------------------------------------------------ | ---------------------------------------- |
+| `Feature:`          | A group of related scenarios                           | "Login Functionality"                    |
+| `Scenario:`         | One specific test case                                 | "Successful login"                       |
+| `Scenario Outline:` | A template test run multiple times with different data | Data-driven login tests                  |
+| `Examples:`         | The data table for a Scenario Outline                  | Different username/password combinations |
+| `Given`             | The starting state (precondition)                      | "I am on the login page"                 |
+| `When`              | The action being performed                             | "I login with ..."                       |
+| `Then`              | The expected outcome (assertion)                       | "I should see the inventory page"        |
+| `And`               | Continues the previous keyword                         | "And I should see welcome message"       |
+| `@tag`              | Labels for organizing/filtering tests                  | `@smoke`, `@regression`, `@ui`           |
 
 ### 📄 `features/ui/inventory.feature` — Product Inventory Tests
 
@@ -388,12 +390,12 @@ Step definitions are the **translation layer**. They take each line from a featu
 **Purpose:** Translates login feature file sentences into browser actions.
 
 ```typescript
-import { Given, When, Then } from './ui.fixtures';
-import { expect } from '@playwright/test';
+import { Given, When, Then } from "./ui.fixtures";
+import { expect } from "@playwright/test";
 
 // When the feature file says "Given I am on the login page"
 // ...this code runs:
-Given('I am on the login page', async ({ loginPage }) => {
+Given("I am on the login page", async ({ loginPage }) => {
   await loginPage.navigate();
   //    ^^^^^^^^^ This is a "fixture" (explained in next section)
   //              It's a pre-built LoginPage object ready to use
@@ -402,22 +404,23 @@ Given('I am on the login page', async ({ loginPage }) => {
 // When the feature file says 'When I login with "user" and "pass"'
 // ...this code runs:
 When(
-  'I login with {string} and {string}',
+  "I login with {string} and {string}",
   //             ^^^^^^^^    ^^^^^^^^ These capture the quoted values
   async ({ loginPage }, username: string, password: string) => {
     await loginPage.login(username, password);
-  }
+  },
 );
 
 // When the feature file says "Then I should see the inventory page"
 // ...this code runs:
-Then('I should see the inventory page', async ({ page }) => {
+Then("I should see the inventory page", async ({ page }) => {
   await expect(page).toHaveURL(/inventory/);
   // Asserts that the current URL contains "inventory"
 });
 ```
 
 **Key concepts:**
+
 - `{string}` captures text in double quotes from the feature file
 - `{int}` captures a number
 - The first argument `{ loginPage, page }` contains fixtures (injected automatically)
@@ -437,20 +440,24 @@ Then('I should see the inventory page', async ({ page }) => {
 
 ```typescript
 // Works for ANY URL — just change the path in the feature file
-When('I send a GET request to {string}', async ({ apiClient }, url: string) => {
+When("I send a GET request to {string}", async ({ apiClient }, url: string) => {
   lastResponse = await apiClient.get(url);
 });
 
-When('I send a POST request to {string} with body:', 
+When(
+  "I send a POST request to {string} with body:",
   async ({ apiClient }, url: string, body: string) => {
     lastResponse = await apiClient.post(url, JSON.parse(body));
-});
+  },
+);
 
 // Works for ANY status code
-Then('the API response status should be {int}', 
+Then(
+  "the API response status should be {int}",
   async ({}, expectedStatus: number) => {
     expect(lastResponse.status).toBe(expectedStatus);
-});
+  },
+);
 ```
 
 ---
@@ -468,9 +475,9 @@ Fixtures are **pre-built objects** that get automatically created before each te
 **Purpose:** Creates page objects and makes them available to step definitions.
 
 ```typescript
-import { test as base, createBdd } from 'playwright-bdd';
-import { LoginPage } from '../../src/ui/pages/LoginPage';
-import { InventoryPage } from '../../src/ui/pages/InventoryPage';
+import { test as base, createBdd } from "playwright-bdd";
+import { LoginPage } from "../../src/ui/pages/LoginPage";
+import { InventoryPage } from "../../src/ui/pages/InventoryPage";
 
 // Define what fixtures are available
 type TestFixtures = {
@@ -566,23 +573,23 @@ export class LoginPage extends BasePage {
   readonly errorMessage: Locator;
 
   constructor(page: Page) {
-    super(page, 'LoginPage');
+    super(page, "LoginPage");
     // Define WHERE each element is using Playwright's locator API
-    this.usernameInput = page.getByPlaceholder('Username');
-    this.passwordInput = page.getByPlaceholder('Password');
-    this.loginButton = page.getByRole('button', { name: 'Login' });
+    this.usernameInput = page.getByPlaceholder("Username");
+    this.passwordInput = page.getByPlaceholder("Password");
+    this.loginButton = page.getByRole("button", { name: "Login" });
     this.errorMessage = page.locator('[data-test="error"]');
   }
 
   // Actions — WHAT you can do on this page
   async navigate(): Promise<void> {
-    await this.navigateTo('https://www.saucedemo.com');
+    await this.navigateTo("https://www.saucedemo.com");
   }
 
   async login(username: string, password: string): Promise<void> {
-    await this.fill(this.usernameInput, username, 'Username');
-    await this.fill(this.passwordInput, password, 'Password');
-    await this.click(this.loginButton, 'Login button');
+    await this.fill(this.usernameInput, username, "Username");
+    await this.fill(this.passwordInput, password, "Password");
+    await this.click(this.loginButton, "Login button");
   }
 
   async getErrorMessage(): Promise<string> {
@@ -592,6 +599,7 @@ export class LoginPage extends BasePage {
 ```
 
 **The pattern:** Each page object has:
+
 1. **Locators** (defined in constructor) — WHERE elements are
 2. **Action methods** — WHAT you can do (click, fill, navigate)
 3. **Verification methods** — HOW to check results (get error text, check visibility)
@@ -631,6 +639,7 @@ export class ApiClient {
 ```
 
 **Why a wrapper?** Raw HTTP requests don't log anything. `ApiClient` automatically logs:
+
 - The URL being requested
 - The response status code
 - How long the request took
@@ -663,13 +672,13 @@ export class ApiClient {
 
 ```typescript
 export const TEST_CREDENTIALS = {
-  standard: { username: 'standard_user', password: 'secret_sauce' },
-  locked: { username: 'locked_out_user', password: 'secret_sauce' },
+  standard: { username: "standard_user", password: "secret_sauce" },
+  locked: { username: "locked_out_user", password: "secret_sauce" },
 };
 
 export const API_ENDPOINTS = {
-  users: { list: '/users', single: (id: number) => `/users/${id}` },
-  posts: { list: '/posts', create: '/posts' },
+  users: { list: "/users", single: (id: number) => `/users/${id}` },
+  posts: { list: "/posts", create: "/posts" },
 };
 ```
 
@@ -702,6 +711,7 @@ export const API_ENDPOINTS = {
 ### 📄 `src/reporting/custom-reporter.ts` — Dashboard Report Generator
 
 **Purpose:** A custom Playwright reporter that generates a beautiful dark-themed HTML dashboard with:
+
 - Pass rate gauge
 - Pie chart of results distribution
 - Bar chart of results by browser
@@ -712,12 +722,12 @@ This file implements the Playwright `Reporter` interface, which means Playwright
 
 ### Report Locations After Running Tests
 
-| Report | Description | How to Open |
-|---|---|---|
-| **Playwright HTML** | Standard detailed report | `npx playwright show-report` |
+| Report               | Description                  | How to Open                                |
+| -------------------- | ---------------------------- | ------------------------------------------ |
+| **Playwright HTML**  | Standard detailed report     | `npx playwright show-report`               |
 | **Custom Dashboard** | Dark-themed visual dashboard | `open test-results/reports/dashboard.html` |
-| **Monocart** | Tree-view with charts | `open test-results/monocart/report.html` |
-| **Allure** | Industry-standard report | `npx allure open allure-report` |
+| **Monocart**         | Tree-view with charts        | `open test-results/monocart/report.html`   |
+| **Allure**           | Industry-standard report     | `npx allure open allure-report`            |
 
 Or just run **`npm run report:all`** to open all 4 at once.
 
@@ -731,8 +741,8 @@ Let's say you want to test a "Sign Up" page. Here's exactly what to do:
 
 ```typescript
 // src/ui/pages/SignUpPage.ts
-import { Page, Locator } from '@playwright/test';
-import { BasePage } from './BasePage';
+import { Page, Locator } from "@playwright/test";
+import { BasePage } from "./BasePage";
 
 export class SignUpPage extends BasePage {
   readonly nameInput: Locator;
@@ -742,26 +752,26 @@ export class SignUpPage extends BasePage {
   readonly successMessage: Locator;
 
   constructor(page: Page) {
-    super(page, 'SignUpPage');
-    this.nameInput = page.getByLabel('Full Name');
-    this.emailInput = page.getByLabel('Email');
-    this.passwordInput = page.getByLabel('Password');
-    this.signUpButton = page.getByRole('button', { name: 'Sign Up' });
-    this.successMessage = page.getByText('Account created successfully');
+    super(page, "SignUpPage");
+    this.nameInput = page.getByLabel("Full Name");
+    this.emailInput = page.getByLabel("Email");
+    this.passwordInput = page.getByLabel("Password");
+    this.signUpButton = page.getByRole("button", { name: "Sign Up" });
+    this.successMessage = page.getByText("Account created successfully");
   }
 
   async navigate(): Promise<void> {
-    await this.navigateTo('https://your-app.com/signup');
+    await this.navigateTo("https://your-app.com/signup");
   }
 
   async fillForm(name: string, email: string, password: string): Promise<void> {
-    await this.fill(this.nameInput, name, 'Name');
-    await this.fill(this.emailInput, email, 'Email');
-    await this.fill(this.passwordInput, password, 'Password');
+    await this.fill(this.nameInput, name, "Name");
+    await this.fill(this.emailInput, email, "Email");
+    await this.fill(this.passwordInput, password, "Password");
   }
 
   async submit(): Promise<void> {
-    await this.click(this.signUpButton, 'Sign Up button');
+    await this.click(this.signUpButton, "Sign Up button");
   }
 }
 ```
@@ -771,20 +781,21 @@ export class SignUpPage extends BasePage {
 Open `steps/ui/ui.fixtures.ts` and add:
 
 ```typescript
-import { SignUpPage } from '../../src/ui/pages/SignUpPage';
+import { SignUpPage } from "../../src/ui/pages/SignUpPage";
 
 // Add to the TestFixtures type:
 type TestFixtures = {
   loginPage: LoginPage;
   inventoryPage: InventoryPage;
   playwrightPage: PlaywrightDocsPage;
-  signUpPage: SignUpPage;            // ← ADD THIS
+  signUpPage: SignUpPage; // ← ADD THIS
 };
 
 // Add to the test.extend block:
 const test = base.extend<TestFixtures>({
   // ...existing fixtures...
-  signUpPage: async ({ page }, use) => {     // ← ADD THIS
+  signUpPage: async ({ page }, use) => {
+    // ← ADD THIS
     await use(new SignUpPage(page));
   },
 });
@@ -817,25 +828,25 @@ Feature: User Registration
 
 ```typescript
 // steps/ui/signup.steps.ts
-import { Given, When, Then } from './ui.fixtures';
-import { expect } from '@playwright/test';
+import { Given, When, Then } from "./ui.fixtures";
+import { expect } from "@playwright/test";
 
-Given('I am on the sign up page', async ({ signUpPage }) => {
+Given("I am on the sign up page", async ({ signUpPage }) => {
   await signUpPage.navigate();
 });
 
 When(
-  'I register with name {string} email {string} and password {string}',
+  "I register with name {string} email {string} and password {string}",
   async ({ signUpPage }, name: string, email: string, password: string) => {
     await signUpPage.fillForm(name, email, password);
-  }
+  },
 );
 
-When('I click the sign up button', async ({ signUpPage }) => {
+When("I click the sign up button", async ({ signUpPage }) => {
   await signUpPage.submit();
 });
 
-Then('I should see a success message', async ({ signUpPage }) => {
+Then("I should see a success message", async ({ signUpPage }) => {
   await expect(signUpPage.successMessage).toBeVisible();
 });
 ```
@@ -880,6 +891,7 @@ Feature: My Application API
 ### Step 2: That's It!
 
 The generic steps in `steps/api/api.steps.ts` already handle:
+
 - `I send a GET request to {string}`
 - `I send a POST request to {string} with body:`
 - `I send a PUT request to {string} with body:`
@@ -889,6 +901,7 @@ The generic steps in `steps/api/api.steps.ts` already handle:
 - `the API response field {string} should equal {}`
 
 Just change the URL in `.env` if needed:
+
 ```env
 API_BASE_URL=https://your-api.example.com
 ```
@@ -897,31 +910,35 @@ API_BASE_URL=https://your-api.example.com
 
 ## 15. Running Tests
 
-| Command | What It Does |
-|---|---|
-| `npm test` | Run ALL tests (all browsers + API) |
-| `npm run test:report` | Run all tests + open all 4 reports |
-| `npm run test:ui` | Run only UI tests (all browsers) |
-| `npm run test:api` | Run only API tests |
-| `npm run test:chrome` | Run UI tests on Chrome only |
-| `npm run test:smoke` | Run only `@smoke` tagged tests |
-| `npm run test:headed` | Run with visible browser |
-| `npm run test:debug` | Run with Playwright Inspector (step through) |
-| `npm run report:all` | Open all 4 reports (without re-running tests) |
-| `npm run clean` | Delete all generated test outputs |
+| Command               | What It Does                                  |
+| --------------------- | --------------------------------------------- |
+| `npm test`            | Run ALL tests (all browsers + API)            |
+| `npm run test:report` | Run all tests + open all 4 reports            |
+| `npm run test:ui`     | Run only UI tests (all browsers)              |
+| `npm run test:api`    | Run only API tests                            |
+| `npm run test:chrome` | Run UI tests on Chrome only                   |
+| `npm run test:smoke`  | Run only `@smoke` tagged tests                |
+| `npm run test:headed` | Run with visible browser                      |
+| `npm run test:debug`  | Run with Playwright Inspector (step through)  |
+| `npm run report:all`  | Open all 4 reports (without re-running tests) |
+| `npm run clean`       | Delete all generated test outputs             |
 
 ---
 
 ## 16. FAQ & Troubleshooting
 
 ### "I added a feature file but tests don't run"
+
 → Run `npx bddgen` first. This generates Playwright test files from your feature files.
 
 ### "Element not found / Timeout"
+
 → Check your locator in the Page Object. Use `npx playwright codegen https://your-site.com` to auto-generate locators by clicking on elements.
 
 ### "Which locator strategy should I use?"
+
 Use this priority:
+
 1. `getByRole('button', { name: 'Submit' })` — **best**, works like a user
 2. `getByLabel('Email')` — great for form fields
 3. `getByPlaceholder('Enter email')` — for placeholder text
@@ -930,15 +947,19 @@ Use this priority:
 6. `locator('.css-class')` — **last resort**
 
 ### "Tests pass locally but fail in CI"
+
 → Set `HEADLESS=true` in CI environment. Make sure `npx playwright install --with-deps` runs in CI.
 
 ### "How do I test only my changes?"
+
 → Tag your scenario with `@wip`, then run: `npx playwright test --grep "@wip"`
 
 ### "How do I see what the browser is doing?"
+
 → Run `npm run test:headed` (visible browser) or `npm run test:debug` (step-by-step with inspector).
 
 ### "My API test gets 403/Forbidden"
+
 → The API may require authentication. Add auth headers in `ApiClient.ts` or check if the API is behind Cloudflare/CAPTCHA.
 
 ---
