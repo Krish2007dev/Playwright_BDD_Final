@@ -18,7 +18,7 @@
 | ⚡ **Performance Metrics** | Page load times, FCP, LCP, resource analysis                     |
 | 🔄 **Auto-Retry**          | Failed tests automatically retry with configurable counts        |
 | 📈 **Observability**       | Flaky test detection, metrics aggregation, trend analysis        |
-| ♿ **BDD Accessibility** | Accessibility scans exposed as tagged Gherkin scenarios |
+| ♿ **BDD Accessibility**   | Accessibility scans exposed as tagged Gherkin scenarios          |
 
 ---
 

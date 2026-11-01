@@ -1,10 +1,6 @@
-import { inspect } from 'node:util';
-import type { TestInfo } from '@playwright/test';
+import { inspect } from "node:util";
+import type { TestInfo } from "@playwright/test";
 
-/**
- * Captures console output for one test and attaches it when the test fails.
- * Playwright attaches screenshots, videos, and traces through its configuration.
- */
 export async function captureFailureLogs(
   testInfo: TestInfo,
   use: () => Promise<void>,
@@ -15,21 +11,27 @@ export async function captureFailureLogs(
   const originalError = console.error;
 
   const capture = (level: string, args: unknown[]): void => {
-    entries.push(`[${level}] ${args.map((arg) => (
-      typeof arg === 'string' ? arg : inspect(arg, { depth: 5, colors: false })
-    )).join(' ')}`);
+    entries.push(
+      `[${level}] ${args
+        .map((arg) =>
+          typeof arg === "string"
+            ? arg
+            : inspect(arg, { depth: 5, colors: false }),
+        )
+        .join(" ")}`,
+    );
   };
 
   console.log = (...args: unknown[]): void => {
-    capture('INFO', args);
+    capture("INFO", args);
     originalLog(...args);
   };
   console.warn = (...args: unknown[]): void => {
-    capture('WARN', args);
+    capture("WARN", args);
     originalWarn(...args);
   };
   console.error = (...args: unknown[]): void => {
-    capture('ERROR', args);
+    capture("ERROR", args);
     originalError(...args);
   };
 
@@ -41,9 +43,12 @@ export async function captureFailureLogs(
     console.error = originalError;
 
     if (testInfo.status !== testInfo.expectedStatus) {
-      await testInfo.attach('test-log', {
-        body: Buffer.from(entries.join('\n') || 'No console output captured.', 'utf8'),
-        contentType: 'text/plain',
+      await testInfo.attach("test-log", {
+        body: Buffer.from(
+          entries.join("\n") || "No console output captured.",
+          "utf8",
+        ),
+        contentType: "text/plain",
       });
     }
   }

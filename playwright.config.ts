@@ -1,31 +1,3 @@
-// ============================================================================
-// playwright.config.ts - The Brain of the Framework
-// ============================================================================
-//
-// PURPOSE:
-// This is the MASTER configuration file. It tells Playwright:
-//   - WHERE to find test files (features + steps)
-//   - HOW to run them (browsers, timeouts, retries)
-//   - WHAT to report (HTML, Allure, Monocart, Custom Dashboard)
-//   - WHICH projects to run (UI tests vs API tests vs specific browsers)
-//
-// KEY ARCHITECTURE DECISION:
-// We use defineBddProject() to create SEPARATE projects for:
-//   - UI tests (chromium, firefox, webkit) - use browser, page objects
-//   - API tests - no browser needed, just HTTP requests
-//
-// This separation means:
-//   API tests run MUCH faster (no browser startup)
-//   UI tests run across multiple browsers for cross-browser coverage
-//   You can run just API or just UI tests using tags or project names
-//
-// FOR BEGINNERS:
-// Think of "projects" as different "modes" for running tests:
-//   npm test                            - runs ALL tests (UI + API)
-//   npx playwright test --project=api   - runs ONLY API tests
-//   npx playwright test --project=chromium - runs ONLY Chrome UI tests
-// ============================================================================
-
 import { defineConfig, devices } from "@playwright/test";
 import { cucumberReporter, defineBddProject } from "playwright-bdd";
 import fs from "node:fs";
@@ -39,7 +11,11 @@ function findCachedBrowserExecutable(browser: BrowserName): string | undefined {
   const browserRoot = process.env.PLAYWRIGHT_BROWSERS_PATH
     ? path.resolve(process.env.PLAYWRIGHT_BROWSERS_PATH)
     : process.platform === "win32"
-      ? path.join(process.env.LOCALAPPDATA ?? path.join(os.homedir(), "AppData", "Local"), "ms-playwright")
+      ? path.join(
+          process.env.LOCALAPPDATA ??
+            path.join(os.homedir(), "AppData", "Local"),
+          "ms-playwright",
+        )
       : process.platform === "darwin"
         ? path.join(os.homedir(), "Library", "Caches", "ms-playwright")
         : path.join(os.homedir(), ".cache", "ms-playwright");

@@ -1,26 +1,3 @@
-/**
- * ============================================================================
- * 📁 env.config.ts — Environment Configuration Manager
- * ============================================================================
- *
- * PURPOSE:
- * This file centralizes ALL environment-specific settings (URLs, timeouts,
- * credentials) into one place. Instead of hardcoding values throughout your
- * tests, you reference them from here. This makes switching between
- * environments (dev, staging, production) effortless.
- *
- * HOW IT WORKS:
- * 1. It reads from a `.env` file (if present) or environment variables.
- * 2. It provides sensible defaults for every setting.
- * 3. All other files import from HERE, never hardcode URLs or credentials.
- *
- * FOR BEGINNERS:
- * Think of this as a "settings" screen for your entire test suite.
- * Want to test against a different server? Change it here, and ALL tests
- * automatically point to the new server.
- * ============================================================================
- */
-
 import * as path from "path";
 import { config as loadDotenv } from "dotenv";
 
@@ -140,42 +117,33 @@ function getBooleanEnvVar(key: string, defaultValue: boolean): boolean {
  * TO OVERRIDE A SETTING:
  *   Option 1: Create a `.env` file in the project root with KEY=VALUE pairs.
  *   Option 2: Set environment variables before running tests:
- *             `UI_BASE_URL=https://myapp.com npm test`
+ *             `UI_BASE_URL=https:
  */
 export const ENV_CONFIG: EnvironmentConfig = {
-  // ─── Environment Name ──────────────────────────────────────────────
   ENV_NAME: getEnvVar("ENV_NAME", "development"),
 
-  // ─── Application URLs ─────────────────────────────────────────────
   UI_BASE_URL: getEnvVar("UI_BASE_URL", "https://www.saucedemo.com"),
   API_BASE_URL: getEnvVar(
     "API_BASE_URL",
     "https://jsonplaceholder.typicode.com",
   ),
 
-  // ─── Timeouts (in milliseconds) ───────────────────────────────────
-  // 1000ms = 1 second. So 30000ms = 30 seconds.
   DEFAULT_TIMEOUT: getNumberEnvVar("DEFAULT_TIMEOUT", 30000, 1),
   API_TIMEOUT: getNumberEnvVar("API_TIMEOUT", 15000, 1),
   NAVIGATION_TIMEOUT: getNumberEnvVar("NAVIGATION_TIMEOUT", 30000, 1),
 
-  // ─── Browser Settings ─────────────────────────────────────────────
   HEADLESS: getBooleanEnvVar("HEADLESS", true),
   VIEWPORT_WIDTH: getNumberEnvVar("VIEWPORT_WIDTH", 1280, 320),
   VIEWPORT_HEIGHT: getNumberEnvVar("VIEWPORT_HEIGHT", 720, 240),
 
-  // ─── Test Execution ───────────────────────────────────────────────
   RETRY_COUNT: getNumberEnvVar("RETRY_COUNT", 1),
   WORKERS: getNumberEnvVar("WORKERS", 4, 1),
 
-  // ─── Output Directories ───────────────────────────────────────────
   REPORT_DIR: getEnvVar("REPORT_DIR", "test-results/reports"),
   SCREENSHOT_DIR: getEnvVar("SCREENSHOT_DIR", "test-results/screenshots"),
   VIDEO_DIR: getEnvVar("VIDEO_DIR", "test-results/videos"),
   TRACE_DIR: getEnvVar("TRACE_DIR", "test-results/traces"),
 
-  // Credentials are intentionally empty by default. Supply them through secrets
-  // or an environment file that is excluded from source control.
   DEFAULT_USERNAME: getOptionalEnvVar("DEFAULT_USERNAME"),
   DEFAULT_PASSWORD: getOptionalEnvVar("DEFAULT_PASSWORD"),
 };

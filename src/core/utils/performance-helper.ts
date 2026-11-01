@@ -1,135 +1,58 @@
-/**
- * ============================================================================
- * 📁 performance-helper.ts — Performance & Accessibility Metrics Collector
- * ============================================================================
- *
- * PURPOSE:
- * Collects performance metrics (page load times, resource counts, etc.) and
- * accessibility data from web pages during tests. This data feeds into the
- * rich reports with charts, graphs, and benchmarks.
- *
- * WHAT IT MEASURES:
- *   🕐 Performance:
- *      - Page load time (how long until the page is fully loaded)
- *      - DOM Content Loaded time (when the HTML structure is ready)
- *      - First Contentful Paint (when the first visual content appears)
- *      - Largest Contentful Paint (when the biggest element renders)
- *      - Total resource count & size (images, scripts, CSS, etc.)
- *
- *   ♿ Accessibility:
- *      - Missing alt text on images
- *      - Color contrast issues
- *      - Missing ARIA labels
- *      - Heading structure validation
- *
- * FOR BEGINNERS:
- * Performance data tells you "is the app fast enough?"
- * Accessibility data tells you "can everyone use the app, including
- * people using screen readers or who have visual impairments?"
- * ============================================================================
- */
+import { Page } from "@playwright/test";
+import { Logger } from "./logger";
 
-import { Page } from '@playwright/test';
-import { Logger } from './logger';
+const log = new Logger("Performance");
 
-/** Logger for this module */
-const log = new Logger('Performance');
-
-/**
- * Holds all the performance numbers collected from a page.
- * Each field is measured in milliseconds unless otherwise noted.
- */
 export interface PerformanceMetrics {
-  /** Full URL of the page measured */
   url: string;
-  /** When the measurement was taken */
   timestamp: string;
 
-  // ─── Navigation Timing ─────────────────────────────────────────────
-  /** Time from navigation start to DOM Content Loaded event (ms) */
   domContentLoaded: number;
-  /** Time from navigation start to full page load (ms) */
   pageLoadTime: number;
-  /** Time the server took to send back the first byte (ms) */
   timeToFirstByte: number;
 
-  // ─── Resource Metrics ──────────────────────────────────────────────
-  /** Total number of resources loaded (scripts, images, CSS, etc.) */
   totalResources: number;
-  /** Total size of all resources in kilobytes */
   totalResourceSizeKB: number;
 
-  // ─── Web Vitals (Modern Performance Indicators) ────────────────────
-  /** First Contentful Paint — when the first text/image appears (ms) */
   firstContentfulPaint: number | null;
-  /** Largest Contentful Paint — when the biggest element renders (ms) */
   largestContentfulPaint: number | null;
 }
 
-/**
- * Holds accessibility scan results for a page.
- */
 export interface AccessibilityResult {
-  /** Full URL of the page scanned */
   url: string;
-  /** When the scan was performed */
   timestamp: string;
-  /** Total number of issues found */
   totalIssues: number;
-  /** Breakdown of issues by severity */
   issuesByCategory: {
-    /** Missing alt text on images */
     missingAltText: number;
-    /** Missing ARIA labels on interactive elements */
     missingAriaLabels: number;
-    /** Empty links or buttons */
     emptyInteractiveElements: number;
-    /** Heading hierarchy problems (e.g., h1 followed by h3) */
     headingIssues: number;
-    /** Missing form labels */
     missingFormLabels: number;
   };
-  /** Detailed list of each issue found */
   issues: AccessibilityIssue[];
 }
 
-/**
- * A single accessibility issue found on the page.
- */
 export interface AccessibilityIssue {
-  /** What type of issue this is */
   category: string;
-  /** The HTML element that has the issue */
   element: string;
-  /** A human-readable description of what's wrong */
   description: string;
-  /** How severe the issue is */
-  severity: 'critical' | 'serious' | 'moderate' | 'minor';
+  severity: "critical" | "serious" | "moderate" | "minor";
 }
 
-/**
- * Collects performance metrics from the current page.
- *
- * HOW IT WORKS:
- * It uses the browser's built-in Performance API (window.performance) to
- * get timing data. This is the same API that Chrome DevTools uses when
- * you look at the "Performance" tab.
- *
- * @param page - The Playwright Page to measure
- * @returns A PerformanceMetrics object with all the numbers
- *
- * USAGE:
- *   const metrics = await collectPerformanceMetrics(page);
- *   console.log(`Page loaded in ${metrics.pageLoadTime}ms`);
- */
-export async function collectPerformanceMetrics(page: Page): Promise<PerformanceMetrics> {
+export async function collectPerformanceMetrics(
+  page: Page,
+): Promise<PerformanceMetrics> {
   log.info(`Collecting performance metrics for: ${page.url()}`);
 
   // ── Use the browser's Performance API to get timing data ──────────
   const timing = await page.evaluate(() => {
     const perf = window.performance;
-    const navigation = perf.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const resources = perf.getEntriesByType('resource') as PerformanceResourceTiming[];
+    const navigation = perf.getEntriesByType(
+      "navigation",
+    )[0] as PerformanceNavigationTiming;
+    const resources = perf.getEntriesByType(
+      "resource",
+    ) as PerformanceResourceTiming[];
 
     // Calculate total resource size (in bytes, converted to KB later)
     const totalResourceSize = resources.reduce(
@@ -138,8 +61,8 @@ export async function collectPerformanceMetrics(page: Page): Promise<Performance
     );
 
     // Get First Contentful Paint (if available)
-    const paintEntries = perf.getEntriesByType('paint');
-    const fcp = paintEntries.find((e) => e.name === 'first-contentful-paint');
+    const paintEntries = perf.getEntriesByType("paint");
+    const fcp = paintEntries.find((e) => e.name === "first-contentful-paint");
 
     return {
       domContentLoaded: navigation
@@ -164,7 +87,7 @@ export async function collectPerformanceMetrics(page: Page): Promise<Performance
     lcp = await page.evaluate(() => {
       return new Promise<number | null>((resolve) => {
         // If the observer API isn't available, return null
-        if (!('PerformanceObserver' in window)) {
+        if (!("PerformanceObserver" in window)) {
           resolve(null);
           return;
         }
@@ -174,13 +97,13 @@ export async function collectPerformanceMetrics(page: Page): Promise<Performance
           resolve(lastEntry ? lastEntry.startTime : null);
           observer.disconnect();
         });
-        observer.observe({ type: 'largest-contentful-paint', buffered: true });
+        observer.observe({ type: "largest-contentful-paint", buffered: true });
         // Timeout after 3 seconds if no LCP data is available
         setTimeout(() => resolve(null), 3000);
       });
     });
   } catch {
-    log.debug('LCP measurement not available for this page.');
+    log.debug("LCP measurement not available for this page.");
   }
 
   const metrics: PerformanceMetrics = {
@@ -197,8 +120,10 @@ export async function collectPerformanceMetrics(page: Page): Promise<Performance
     largestContentfulPaint: lcp ? Math.round(lcp) : null,
   };
 
-  log.info(`Performance: Load=${metrics.pageLoadTime}ms, TTFB=${metrics.timeToFirstByte}ms, ` +
-    `FCP=${metrics.firstContentfulPaint ?? 'N/A'}ms, Resources=${metrics.totalResources}`);
+  log.info(
+    `Performance: Load=${metrics.pageLoadTime}ms, TTFB=${metrics.timeToFirstByte}ms, ` +
+      `FCP=${metrics.firstContentfulPaint ?? "N/A"}ms, Resources=${metrics.totalResources}`,
+  );
 
   return metrics;
 }
@@ -217,20 +142,23 @@ export async function collectPerformanceMetrics(page: Page): Promise<Performance
  *   const a11y = await runAccessibilityCheck(page);
  *   console.log(`Found ${a11y.totalIssues} accessibility issues`);
  */
-export async function runAccessibilityCheck(page: Page): Promise<AccessibilityResult> {
+export async function runAccessibilityCheck(
+  page: Page,
+): Promise<AccessibilityResult> {
   log.info(`Running accessibility check on: ${page.url()}`);
 
   const issues: AccessibilityIssue[] = await page.evaluate(() => {
     const found: AccessibilityIssue[] = [];
 
     // ── Check 1: Images without alt text ──────────────────────────────
-    document.querySelectorAll('img').forEach((img) => {
-      if (!img.hasAttribute('alt') || img.getAttribute('alt')?.trim() === '') {
+    document.querySelectorAll("img").forEach((img) => {
+      if (!img.hasAttribute("alt") || img.getAttribute("alt")?.trim() === "") {
         found.push({
-          category: 'missingAltText',
+          category: "missingAltText",
           element: img.outerHTML.substring(0, 100),
-          description: 'Image is missing alt text, making it invisible to screen readers.',
-          severity: 'serious',
+          description:
+            "Image is missing alt text, making it invisible to screen readers.",
+          severity: "serious",
         });
       }
     });
@@ -238,65 +166,69 @@ export async function runAccessibilityCheck(page: Page): Promise<AccessibilityRe
     // ── Check 2: Interactive elements without ARIA labels ─────────────
     document.querySelectorAll('button, [role="button"]').forEach((btn) => {
       const hasText = btn.textContent?.trim();
-      const hasAriaLabel = btn.getAttribute('aria-label');
-      const hasAriaLabelledBy = btn.getAttribute('aria-labelledby');
+      const hasAriaLabel = btn.getAttribute("aria-label");
+      const hasAriaLabelledBy = btn.getAttribute("aria-labelledby");
       if (!hasText && !hasAriaLabel && !hasAriaLabelledBy) {
         found.push({
-          category: 'missingAriaLabels',
+          category: "missingAriaLabels",
           element: btn.outerHTML.substring(0, 100),
-          description: 'Button has no text or ARIA label.',
-          severity: 'critical',
+          description: "Button has no text or ARIA label.",
+          severity: "critical",
         });
       }
     });
 
     // ── Check 3: Empty links ──────────────────────────────────────────
-    document.querySelectorAll('a').forEach((link) => {
+    document.querySelectorAll("a").forEach((link) => {
       const hasText = link.textContent?.trim();
-      const hasAriaLabel = link.getAttribute('aria-label');
+      const hasAriaLabel = link.getAttribute("aria-label");
       if (!hasText && !hasAriaLabel) {
         found.push({
-          category: 'emptyInteractiveElements',
+          category: "emptyInteractiveElements",
           element: link.outerHTML.substring(0, 100),
-          description: 'Link has no text or ARIA label.',
-          severity: 'serious',
+          description: "Link has no text or ARIA label.",
+          severity: "serious",
         });
       }
     });
 
     // ── Check 4: Form inputs without labels ───────────────────────────
-    document.querySelectorAll('input, select, textarea').forEach((input) => {
-      const id = input.getAttribute('id');
-      const hasLabel = id ? document.querySelector(`label[for="${id}"]`) : false;
-      const hasAriaLabel = input.getAttribute('aria-label');
-      const hasAriaLabelledBy = input.getAttribute('aria-labelledby');
-      const hasPlaceholder = input.getAttribute('placeholder');
-      const inputType = input.getAttribute('type');
+    document.querySelectorAll("input, select, textarea").forEach((input) => {
+      const id = input.getAttribute("id");
+      const hasLabel = id
+        ? document.querySelector(`label[for="${id}"]`)
+        : false;
+      const hasAriaLabel = input.getAttribute("aria-label");
+      const hasAriaLabelledBy = input.getAttribute("aria-labelledby");
+      const hasPlaceholder = input.getAttribute("placeholder");
+      const inputType = input.getAttribute("type");
 
       // Skip hidden inputs and submit buttons
-      if (inputType === 'hidden' || inputType === 'submit') return;
+      if (inputType === "hidden" || inputType === "submit") return;
 
       if (!hasLabel && !hasAriaLabel && !hasAriaLabelledBy && !hasPlaceholder) {
         found.push({
-          category: 'missingFormLabels',
+          category: "missingFormLabels",
           element: input.outerHTML.substring(0, 100),
-          description: 'Form input has no associated label.',
-          severity: 'serious',
+          description: "Form input has no associated label.",
+          severity: "serious",
         });
       }
     });
 
     // ── Check 5: Heading hierarchy ────────────────────────────────────
-    const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+    const headings = Array.from(
+      document.querySelectorAll("h1, h2, h3, h4, h5, h6"),
+    );
     let lastLevel = 0;
     headings.forEach((heading) => {
       const level = parseInt(heading.tagName.charAt(1));
       if (level > lastLevel + 1 && lastLevel > 0) {
         found.push({
-          category: 'headingIssues',
+          category: "headingIssues",
           element: `<${heading.tagName.toLowerCase()}>${heading.textContent?.substring(0, 50)}</${heading.tagName.toLowerCase()}>`,
           description: `Heading level skipped: jumped from h${lastLevel} to h${level}.`,
-          severity: 'moderate',
+          severity: "moderate",
         });
       }
       lastLevel = level;
@@ -311,17 +243,27 @@ export async function runAccessibilityCheck(page: Page): Promise<AccessibilityRe
     timestamp: new Date().toISOString(),
     totalIssues: issues.length,
     issuesByCategory: {
-      missingAltText: issues.filter((i) => i.category === 'missingAltText').length,
-      missingAriaLabels: issues.filter((i) => i.category === 'missingAriaLabels').length,
-      emptyInteractiveElements: issues.filter((i) => i.category === 'emptyInteractiveElements').length,
-      headingIssues: issues.filter((i) => i.category === 'headingIssues').length,
-      missingFormLabels: issues.filter((i) => i.category === 'missingFormLabels').length,
+      missingAltText: issues.filter((i) => i.category === "missingAltText")
+        .length,
+      missingAriaLabels: issues.filter(
+        (i) => i.category === "missingAriaLabels",
+      ).length,
+      emptyInteractiveElements: issues.filter(
+        (i) => i.category === "emptyInteractiveElements",
+      ).length,
+      headingIssues: issues.filter((i) => i.category === "headingIssues")
+        .length,
+      missingFormLabels: issues.filter(
+        (i) => i.category === "missingFormLabels",
+      ).length,
     },
     issues,
   };
 
   if (result.totalIssues > 0) {
-    log.warn(`Accessibility: Found ${result.totalIssues} issues on ${page.url()}`);
+    log.warn(
+      `Accessibility: Found ${result.totalIssues} issues on ${page.url()}`,
+    );
   } else {
     log.info(`Accessibility: No issues found on ${page.url()} ✅`);
   }

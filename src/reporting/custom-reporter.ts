@@ -1,31 +1,3 @@
-/**
- * ============================================================================
- * 📁 custom-reporter.ts — Custom Playwright Reporter with Rich Metrics
- * ============================================================================
- *
- * PURPOSE:
- * A custom Playwright reporter that collects data during the test run and
- * generates a beautiful HTML dashboard with:
- *   📊 Charts and graphs (pass/fail pie chart, duration bar chart)
- *   📈 Performance benchmarks (page load times, API response times)
- *   ♿ Accessibility scan results
- *   🔧 Observability metrics (flaky tests, auto-heals, retries)
- *   📋 Detailed test results table
- *
- * HOW PLAYWRIGHT REPORTERS WORK:
- * Playwright calls specific methods on your reporter at different stages:
- *   onBegin()     → Called once when the test run starts
- *   onTestEnd()   → Called after each test finishes
- *   onEnd()       → Called once when ALL tests are done
- *
- * You collect data in onTestEnd() and generate the report in onEnd().
- *
- * FOR BEGINNERS:
- * Think of a reporter as a "journalist" watching your tests run.
- * It takes notes on everything that happens and writes a summary at the end.
- * ============================================================================
- */
-
 import {
   Reporter,
   TestCase,
@@ -33,21 +5,17 @@ import {
   FullConfig,
   Suite,
   FullResult,
-} from '@playwright/test/reporter';
-import * as fs from 'fs';
-import * as path from 'path';
-import { Logger } from '../core/utils/logger';
+} from "@playwright/test/reporter";
+import * as fs from "fs";
+import * as path from "path";
+import { Logger } from "../core/utils/logger";
 
-/** Logger for this module */
-const log = new Logger('CustomReporter');
+const log = new Logger("CustomReporter");
 
-/**
- * Data collected for each test.
- */
 interface TestData {
   title: string;
   fullTitle: string;
-  status: 'passed' | 'failed' | 'skipped' | 'timedOut' | 'interrupted';
+  status: "passed" | "failed" | "skipped" | "timedOut" | "interrupted";
   duration: number;
   error?: string;
   retries: number;
@@ -56,37 +24,21 @@ interface TestData {
   file: string;
 }
 
-/**
- * CustomReporter — Generates a rich HTML dashboard after tests run.
- *
- * USAGE:
- * Add this to your playwright.config.ts reporters array:
- *   reporter: [
- *     ['./src/reporting/custom-reporter.ts', { outputDir: 'test-results/reports' }],
- *   ]
- */
 export default class CustomReporter implements Reporter {
-  /** All test results collected during the run */
   private tests: TestData[] = [];
 
-  /** When the run started */
   private startTime: Date = new Date();
 
-  /** Output directory for the report */
   private outputDir: string;
 
   constructor(options?: { outputDir?: string }) {
-    this.outputDir = options?.outputDir || 'test-results/reports';
+    this.outputDir = options?.outputDir || "test-results/reports";
   }
 
-  /**
-   * Called once when the test run starts.
-   * Logs the start and records the timestamp.
-   */
   onBegin(config: FullConfig, suite: Suite): void {
     this.startTime = new Date();
     const totalTests = suite.allTests().length;
-    log.separator('Test Run Starting');
+    log.separator("Test Run Starting");
     log.info(`Total tests to run: ${totalTests}`);
     log.info(`Workers: ${config.workers}`);
   }
@@ -101,18 +53,23 @@ export default class CustomReporter implements Reporter {
 
     this.tests.push({
       title: test.title,
-      fullTitle: test.titlePath().join(' > '),
+      fullTitle: test.titlePath().join(" > "),
       status: result.status,
       duration: result.duration,
       error: result.error?.message?.substring(0, 500),
       retries: result.retry,
-      projectName: test.parent?.project()?.name || 'unknown',
+      projectName: test.parent?.project()?.name || "unknown",
       tags: tags,
       file: test.location.file,
     });
 
     // Log each test result as it happens
-    const statusIcon = result.status === 'passed' ? '✅' : result.status === 'failed' ? '❌' : '⏭️';
+    const statusIcon =
+      result.status === "passed"
+        ? "✅"
+        : result.status === "failed"
+          ? "❌"
+          : "⏭️";
     log.info(`${statusIcon} ${test.title} (${result.duration}ms)`);
   }
 
@@ -121,35 +78,46 @@ export default class CustomReporter implements Reporter {
    * This is where we generate the HTML report.
    */
   async onEnd(result: FullResult): Promise<void> {
-    log.separator('Test Run Complete');
+    log.separator("Test Run Complete");
 
     const endTime = new Date();
     const totalDuration = endTime.getTime() - this.startTime.getTime();
 
     // ── Calculate summary statistics ─────────────────────────────────
-    const passed = this.tests.filter((t) => t.status === 'passed').length;
-    const failed = this.tests.filter((t) => t.status === 'failed').length;
-    const skipped = this.tests.filter((t) => t.status === 'skipped').length;
-    const timedOut = this.tests.filter((t) => t.status === 'timedOut').length;
+    const passed = this.tests.filter((t) => t.status === "passed").length;
+    const failed = this.tests.filter((t) => t.status === "failed").length;
+    const skipped = this.tests.filter((t) => t.status === "skipped").length;
+    const timedOut = this.tests.filter((t) => t.status === "timedOut").length;
     const total = this.tests.length;
-    const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : '0';
-    const flaky = this.tests.filter((t) => t.retries > 0 && t.status === 'passed').length;
+    const passRate = total > 0 ? ((passed / total) * 100).toFixed(1) : "0";
+    const flaky = this.tests.filter(
+      (t) => t.retries > 0 && t.status === "passed",
+    ).length;
 
     // ── Calculate duration stats ─────────────────────────────────────
     const durations = this.tests.map((t) => t.duration);
-    const avgDuration = total > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / total) : 0;
+    const avgDuration =
+      total > 0 ? Math.round(durations.reduce((a, b) => a + b, 0) / total) : 0;
     const maxDuration = Math.max(...durations, 0);
     const minDuration = Math.min(...durations, 0);
 
     // ── Group by project/browser ─────────────────────────────────────
-    const byProject: Record<string, { passed: number; failed: number; skipped: number; total: number }> = {};
+    const byProject: Record<
+      string,
+      { passed: number; failed: number; skipped: number; total: number }
+    > = {};
     this.tests.forEach((t) => {
       if (!byProject[t.projectName]) {
-        byProject[t.projectName] = { passed: 0, failed: 0, skipped: 0, total: 0 };
+        byProject[t.projectName] = {
+          passed: 0,
+          failed: 0,
+          skipped: 0,
+          total: 0,
+        };
       }
       byProject[t.projectName].total++;
-      if (t.status === 'passed') byProject[t.projectName].passed++;
-      else if (t.status === 'failed') byProject[t.projectName].failed++;
+      if (t.status === "passed") byProject[t.projectName].passed++;
+      else if (t.status === "failed") byProject[t.projectName].failed++;
       else byProject[t.projectName].skipped++;
     });
 
@@ -180,11 +148,11 @@ export default class CustomReporter implements Reporter {
     }
 
     // Save JSON metrics
-    const jsonPath = path.join(this.outputDir, 'metrics.json');
+    const jsonPath = path.join(this.outputDir, "metrics.json");
     fs.writeFileSync(jsonPath, JSON.stringify(metricsJson, null, 2));
 
     // Generate HTML report
-    const htmlPath = path.join(this.outputDir, 'dashboard.html');
+    const htmlPath = path.join(this.outputDir, "dashboard.html");
     fs.writeFileSync(htmlPath, this.generateHtmlReport(metricsJson));
 
     log.info(`📊 Dashboard report: ${htmlPath}`);
@@ -199,12 +167,15 @@ export default class CustomReporter implements Reporter {
    */
   private generateHtmlReport(metrics: any): string {
     const { summary, byProject, tests } = metrics;
-    const failedTests = tests.filter((t: TestData) => t.status === 'failed');
-    const flakyTests = tests.filter((t: TestData) => t.retries > 0 && t.status === 'passed');
+    const failedTests = tests.filter((t: TestData) => t.status === "failed");
+    const flakyTests = tests.filter(
+      (t: TestData) => t.retries > 0 && t.status === "passed",
+    );
 
     // Project breakdown rows
     const projectRows = Object.entries(byProject)
-      .map(([name, data]: [string, any]) => `
+      .map(
+        ([name, data]: [string, any]) => `
         <tr>
           <td>${name}</td>
           <td>${data.total}</td>
@@ -213,64 +184,83 @@ export default class CustomReporter implements Reporter {
           <td class="text-muted">${data.skipped}</td>
           <td>${data.total > 0 ? ((data.passed / data.total) * 100).toFixed(1) : 0}%</td>
         </tr>
-      `)
-      .join('');
+      `,
+      )
+      .join("");
 
     // All tests table rows
     const testRows = tests
       .map((t: TestData) => {
         const statusClass =
-          t.status === 'passed' ? 'badge-success' :
-            t.status === 'failed' ? 'badge-danger' :
-              'badge-warning';
+          t.status === "passed"
+            ? "badge-success"
+            : t.status === "failed"
+              ? "badge-danger"
+              : "badge-warning";
         const statusIcon =
-          t.status === 'passed' ? '✅' :
-            t.status === 'failed' ? '❌' :
-              '⏭️';
+          t.status === "passed" ? "✅" : t.status === "failed" ? "❌" : "⏭️";
         return `
           <tr>
             <td>${statusIcon} <span class="badge ${statusClass}">${t.status}</span></td>
             <td title="${t.fullTitle}">${t.title}</td>
             <td>${t.projectName}</td>
             <td>${t.duration}ms</td>
-            <td>${t.retries > 0 ? `🔄 ${t.retries}` : '—'}</td>
-            <td>${t.error ? `<span class="error-msg" title="${this.escapeHtml(t.error)}">${this.escapeHtml(t.error.substring(0, 80))}...</span>` : '—'}</td>
+            <td>${t.retries > 0 ? `🔄 ${t.retries}` : "—"}</td>
+            <td>${t.error ? `<span class="error-msg" title="${this.escapeHtml(t.error)}">${this.escapeHtml(t.error.substring(0, 80))}...</span>` : "—"}</td>
           </tr>
         `;
       })
-      .join('');
+      .join("");
 
     // Failed tests detail
-    const failedDetail = failedTests.length > 0
-      ? failedTests.map((t: TestData) => `
+    const failedDetail =
+      failedTests.length > 0
+        ? failedTests
+            .map(
+              (t: TestData) => `
           <div class="failed-test-card">
             <h4>❌ ${this.escapeHtml(t.title)}</h4>
             <p><strong>File:</strong> ${this.escapeHtml(t.file)}</p>
             <p><strong>Project:</strong> ${t.projectName}</p>
-            <pre class="error-block">${this.escapeHtml(t.error || 'No error message')}</pre>
+            <pre class="error-block">${this.escapeHtml(t.error || "No error message")}</pre>
           </div>
-        `).join('')
-      : '<p class="text-success">🎉 No failed tests!</p>';
+        `,
+            )
+            .join("")
+        : '<p class="text-success">🎉 No failed tests!</p>';
 
     // Flaky tests detail
-    const flakyDetail = flakyTests.length > 0
-      ? flakyTests.map((t: TestData) => `
+    const flakyDetail =
+      flakyTests.length > 0
+        ? flakyTests
+            .map(
+              (t: TestData) => `
           <div class="flaky-test-card">
             <h4>🔄 ${this.escapeHtml(t.title)}</h4>
             <p>Retried <strong>${t.retries}</strong> time(s) before passing.</p>
             <p><strong>Project:</strong> ${t.projectName}</p>
           </div>
-        `).join('')
-      : '<p class="text-success">🎉 No flaky tests detected!</p>';
+        `,
+            )
+            .join("")
+        : '<p class="text-success">🎉 No flaky tests detected!</p>';
 
     // Duration data for bar chart
-    const durationLabels = tests.slice(0, 20).map((t: TestData) =>
-      t.title.length > 30 ? t.title.substring(0, 27) + '...' : t.title
-    );
+    const durationLabels = tests
+      .slice(0, 20)
+      .map((t: TestData) =>
+        t.title.length > 30 ? t.title.substring(0, 27) + "..." : t.title,
+      );
     const durationValues = tests.slice(0, 20).map((t: TestData) => t.duration);
-    const durationColors = tests.slice(0, 20).map((t: TestData) =>
-      t.status === 'passed' ? '#10b981' : t.status === 'failed' ? '#ef4444' : '#f59e0b'
-    );
+    const durationColors = tests
+      .slice(0, 20)
+      .map((t: TestData) =>
+        t.status === "passed"
+          ? "#10b981"
+          : t.status === "failed"
+            ? "#ef4444"
+            : "#f59e0b",
+      );
 
     // Project data for chart
     const projectNames = Object.keys(byProject);
@@ -285,9 +275,6 @@ export default class CustomReporter implements Reporter {
   <title>🚀 Test Execution Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    /* ═══════════════════════════════════════════════════════════════
-       CSS Styles for the Dashboard
-       ═══════════════════════════════════════════════════════════════ */
     :root {
       --bg-primary: #0f172a;
       --bg-secondary: #1e293b;
@@ -308,8 +295,6 @@ export default class CustomReporter implements Reporter {
       line-height: 1.6;
     }
     .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-    
-    /* Header */
     .header {
       text-align: center;
       margin-bottom: 2rem;
@@ -322,7 +307,6 @@ export default class CustomReporter implements Reporter {
     .header .subtitle { color: var(--text-secondary); font-size: 1rem; }
     .header .timestamp { color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem; }
 
-    /* Summary Cards */
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -356,7 +340,6 @@ export default class CustomReporter implements Reporter {
     .summary-card.info .number { color: var(--accent-blue); }
     .summary-card.purple .number { color: var(--accent-purple); }
 
-    /* Charts Section */
     .charts-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
@@ -376,7 +359,6 @@ export default class CustomReporter implements Reporter {
     }
     .chart-container { position: relative; height: 300px; }
 
-    /* Section Headers */
     .section-header {
       font-size: 1.5rem;
       margin: 2rem 0 1rem;
@@ -384,7 +366,6 @@ export default class CustomReporter implements Reporter {
       border-bottom: 2px solid var(--bg-card);
     }
 
-    /* Tables */
     .table-container {
       background: var(--bg-secondary);
       border-radius: 12px;
@@ -411,7 +392,6 @@ export default class CustomReporter implements Reporter {
     }
     tr:hover td { background: rgba(255,255,255,0.03); }
 
-    /* Badges */
     .badge {
       display: inline-block;
       padding: 0.2rem 0.6rem;
@@ -424,13 +404,11 @@ export default class CustomReporter implements Reporter {
     .badge-danger { background: rgba(239,68,68,0.2); color: var(--accent-red); }
     .badge-warning { background: rgba(245,158,11,0.2); color: var(--accent-yellow); }
 
-    /* Text Colors */
     .text-success { color: var(--accent-green); }
     .text-danger { color: var(--accent-red); }
     .text-warning { color: var(--accent-yellow); }
     .text-muted { color: var(--text-secondary); }
 
-    /* Error & Flaky Cards */
     .failed-test-card, .flaky-test-card {
       background: var(--bg-card);
       border-radius: 8px;
@@ -458,7 +436,6 @@ export default class CustomReporter implements Reporter {
       cursor: help;
     }
 
-    /* Progress Bar */
     .progress-bar {
       width: 100%;
       height: 8px;
@@ -473,7 +450,6 @@ export default class CustomReporter implements Reporter {
       transition: width 1s ease;
     }
 
-    /* Footer */
     .footer {
       text-align: center;
       padding: 2rem;
@@ -496,10 +472,10 @@ export default class CustomReporter implements Reporter {
       </p>
       <!-- Overall Pass Rate Progress Bar -->
       <div class="progress-bar">
-        <div class="progress-fill" style="width: ${summary.passRate}%; background: ${summary.passRate >= 80 ? 'var(--accent-green)' : summary.passRate >= 50 ? 'var(--accent-yellow)' : 'var(--accent-red)'}"></div>
+        <div class="progress-fill" style="width: ${summary.passRate}%; background: ${summary.passRate >= 80 ? "var(--accent-green)" : summary.passRate >= 50 ? "var(--accent-yellow)" : "var(--accent-red)"}"></div>
       </div>
       <p style="font-size: 1.2rem; font-weight: 600;">
-        Pass Rate: <span style="color: ${summary.passRate >= 80 ? 'var(--accent-green)' : 'var(--accent-red)'}">${summary.passRate}%</span>
+        Pass Rate: <span style="color: ${summary.passRate >= 80 ? "var(--accent-green)" : "var(--accent-red)"}">${summary.passRate}%</span>
       </p>
     </div>
 
@@ -641,7 +617,6 @@ export default class CustomReporter implements Reporter {
        Chart.js Script — Creates the interactive charts
        ═══════════════════════════════════════════════════════════════ -->
   <script>
-    // ── Pie Chart: Test Results Distribution ──────────────────────────
     new Chart(document.getElementById('statusChart'), {
       type: 'doughnut',
       data: {
@@ -665,7 +640,6 @@ export default class CustomReporter implements Reporter {
       }
     });
 
-    // ── Bar Chart: Test Duration ──────────────────────────────────────
     new Chart(document.getElementById('durationChart'), {
       type: 'bar',
       data: {
@@ -691,7 +665,6 @@ export default class CustomReporter implements Reporter {
       }
     });
 
-    // ── Stacked Bar Chart: Results by Project ─────────────────────────
     new Chart(document.getElementById('projectChart'), {
       type: 'bar',
       data: {
@@ -714,7 +687,6 @@ export default class CustomReporter implements Reporter {
       }
     });
 
-    // ── Gauge Chart: Pass Rate ────────────────────────────────────────
     new Chart(document.getElementById('gaugeChart'), {
       type: 'doughnut',
       data: {
@@ -777,10 +749,10 @@ export default class CustomReporter implements Reporter {
    */
   private escapeHtml(text: string): string {
     return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 }

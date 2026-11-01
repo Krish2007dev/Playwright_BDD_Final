@@ -1,45 +1,16 @@
-/**
- * ============================================================================
- * 📁 ApiValidator.ts — API Response Validation Helpers
- * ============================================================================
- *
- * PURPOSE:
- * Provides reusable assertion helpers for API responses. Instead of writing
- * the same validation logic in every step definition, use these helpers
- * for consistent, readable, and well-logged assertions.
- *
- * FOR BEGINNERS:
- * After making an API request, you need to CHECK that the response is correct.
- * This file gives you easy-to-use methods like:
- *   - "Is the status code 200?"
- *   - "Does the response body contain 'name'?"
- *   - "Is the response JSON valid?"
- *
- * These methods also log everything, so if a check fails, the log shows
- * you EXACTLY what went wrong.
- * ============================================================================
- */
+import { expect } from "@playwright/test";
+import { Logger } from "../../core/utils/logger";
+import { ApiResponseData } from "../client/ApiClient";
 
-import { expect } from '@playwright/test';
-import { Logger } from '../../core/utils/logger';
-import { ApiResponseData } from '../client/ApiClient';
+const log = new Logger("ApiValidator");
 
-/** Logger for this module */
-const log = new Logger('ApiValidator');
-
-/**
- * Validates that the response has a specific HTTP status code.
- *
- * @param response - The API response to validate
- * @param expectedStatus - The expected HTTP status code (e.g., 200, 201, 404)
- *
- * EXAMPLE:
- *   const response = await api.get('/users');
- *   validateStatus(response, 200); // Passes ✅
- *   validateStatus(response, 404); // Fails ❌
- */
-export function validateStatus(response: ApiResponseData, expectedStatus: number): void {
-  log.info(`Validating status: expected ${expectedStatus}, got ${response.status}`);
+export function validateStatus(
+  response: ApiResponseData,
+  expectedStatus: number,
+): void {
+  log.info(
+    `Validating status: expected ${expectedStatus}, got ${response.status}`,
+  );
   expect(response.status).toBe(expectedStatus);
   log.info(`✅ Status ${expectedStatus} verified.`);
 }
@@ -55,9 +26,15 @@ export function validateStatus(response: ApiResponseData, expectedStatus: number
  *   validateBodyContainsKey(response, 'id');   // Passes ✅
  *   validateBodyContainsKey(response, 'age');   // Fails ❌
  */
-export function validateBodyContainsKey(response: ApiResponseData, key: string): void {
+export function validateBodyContainsKey(
+  response: ApiResponseData,
+  key: string,
+): void {
   log.info(`Validating response body contains key: "${key}"`);
-  const bodyString = typeof response.body === 'string' ? response.body : JSON.stringify(response.body);
+  const bodyString =
+    typeof response.body === "string"
+      ? response.body
+      : JSON.stringify(response.body);
   expect(bodyString).toContain(key);
   log.info(`✅ Response body contains "${key}".`);
 }
@@ -76,10 +53,19 @@ export function validateBodyContainsKey(response: ApiResponseData, key: string):
 export function validateBodyFieldEquals(
   response: ApiResponseData,
   key: string,
-  expectedValue: any,
+  expectedValue: unknown,
 ): void {
   log.info(`Validating body.${key} === ${JSON.stringify(expectedValue)}`);
-  expect(response.body[key]).toBe(expectedValue);
+  const value = key
+    .split(".")
+    .reduce<unknown>(
+      (current, segment) =>
+        typeof current === "object" && current !== null
+          ? (current as Record<string, unknown>)[segment]
+          : undefined,
+      response.body,
+    );
+  expect(value).toBe(expectedValue);
   log.info(`✅ body.${key} equals expected value.`);
 }
 
@@ -93,11 +79,16 @@ export function validateBodyFieldEquals(
  *   // If response body is { "data": [{ id: 1 }, { id: 2 }] }
  *   validateBodyIsArray(response, 'data'); // Passes ✅
  */
-export function validateBodyIsArray(response: ApiResponseData, arrayKey: string): void {
+export function validateBodyIsArray(
+  response: ApiResponseData,
+  arrayKey: string,
+): void {
   log.info(`Validating body.${arrayKey} is a non-empty array`);
   expect(Array.isArray(response.body[arrayKey])).toBe(true);
   expect(response.body[arrayKey].length).toBeGreaterThan(0);
-  log.info(`✅ body.${arrayKey} is an array with ${response.body[arrayKey].length} items.`);
+  log.info(
+    `✅ body.${arrayKey} is an array with ${response.body[arrayKey].length} items.`,
+  );
 }
 
 /**
@@ -109,10 +100,17 @@ export function validateBodyIsArray(response: ApiResponseData, arrayKey: string)
  * EXAMPLE:
  *   validateResponseTime(response, 2000); // Fails if > 2 seconds
  */
-export function validateResponseTime(response: ApiResponseData, maxTimeMs: number): void {
-  log.info(`Validating response time: ${response.responseTime}ms <= ${maxTimeMs}ms`);
+export function validateResponseTime(
+  response: ApiResponseData,
+  maxTimeMs: number,
+): void {
+  log.info(
+    `Validating response time: ${response.responseTime}ms <= ${maxTimeMs}ms`,
+  );
   expect(response.responseTime).toBeLessThanOrEqual(maxTimeMs);
-  log.info(`✅ Response time (${response.responseTime}ms) is within threshold.`);
+  log.info(
+    `✅ Response time (${response.responseTime}ms) is within threshold.`,
+  );
 }
 
 /**
@@ -154,16 +152,20 @@ export function validateSchema(
   response: ApiResponseData,
   schema: Record<string, string>,
 ): void {
-  log.info('Validating response body against schema');
+  log.info("Validating response body against schema");
 
   for (const [field, expectedType] of Object.entries(schema)) {
     const actualValue = response.body[field];
     const actualType = typeof actualValue;
 
-    log.debug(`  ${field}: expected "${expectedType}", got "${actualType}" (value: ${actualValue})`);
+    log.debug(
+      `  ${field}: expected "${expectedType}", got "${actualType}" (value: ${actualValue})`,
+    );
     expect(actualValue).toBeDefined();
     expect(actualType).toBe(expectedType);
   }
 
-  log.info(`✅ Schema validation passed (${Object.keys(schema).length} fields verified).`);
+  log.info(
+    `✅ Schema validation passed (${Object.keys(schema).length} fields verified).`,
+  );
 }
